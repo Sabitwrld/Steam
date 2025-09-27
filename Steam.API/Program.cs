@@ -25,12 +25,15 @@ namespace Steam.API
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-            
+
             #region Register Repositories
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             #region Catalog Repositories
             builder.Services.AddScoped<IApplicationCatalogRepository, ApplicationCatalogRepository>();
             builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+            builder.Services.AddScoped<IMediaRepository, MediaRepository>();
+            builder.Services.AddScoped<ISystemRequirementsRepository, SystemRequirementsRepository>();
+            builder.Services.AddScoped<ITagRepository, TagRepository>();
             #endregion
             #endregion
 
@@ -38,6 +41,9 @@ namespace Steam.API
             #region Catalog Services
             builder.Services.AddScoped<IApplicationCatalogService, ApplicationCatalogService>();
             builder.Services.AddScoped<IGenreService, GenreService>();
+            builder.Services.AddScoped<IMediaService, MediaService>();
+            builder.Services.AddScoped<ISystemRequirementsService, SystemRequirementsService>();
+            builder.Services.AddScoped<ITagService, TagService>();
             #endregion
             #endregion
 
@@ -47,6 +53,8 @@ namespace Steam.API
                 cfg.AddMaps(typeof(CatalogProfile).Assembly);
             });
             #endregion
+
+
 
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
             {
@@ -58,6 +66,21 @@ namespace Steam.API
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders(); ;
 
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.OperationFilter<SwaggerFileOperationFilter>();
+            });
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()   // test üçün
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -66,11 +89,10 @@ namespace Steam.API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseCors();
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 

@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using Steam.Application.DTOs.Catalog.Application;
 using Steam.Application.DTOs.Catalog.Genre;
+using Steam.Application.DTOs.Catalog.Media;
+using Steam.Application.DTOs.Catalog.SystemRequirements;
+using Steam.Application.DTOs.Catalog.Tag;
 using Steam.Domain.Entities.Catalog;
 using System;
 using System.Collections.Generic;
@@ -26,6 +29,22 @@ namespace Steam.Application.Profiles
             CreateMap<Genre, GenreListItemDto>();
             CreateMap<GenreCreateDto, Genre>();
             CreateMap<GenreUpdateDto, Genre>();
+
+            CreateMap<Media, MediaReturnDto>();
+            CreateMap<Media, MediaListItemDto>();
+            CreateMap<MediaCreateDto, Media>();
+            CreateMap<MediaUpdateDto, Media>();
+
+            CreateMap<SystemRequirements, SystemRequirementsReturnDto>();
+            CreateMap<SystemRequirements, SystemRequirementsListItemDto>();
+            CreateMap<SystemRequirementsCreateDto, SystemRequirements>();
+            CreateMap<SystemRequirementsUpdateDto, SystemRequirements>();
+
+            CreateMap<Tag, TagReturnDto>();
+            CreateMap<Tag, TagListItemDto>();
+            CreateMap<TagCreateDto, Tag>();
+            CreateMap<TagUpdateDto, Tag>();
+
         }
     }
 }
