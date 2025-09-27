@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Steam.Application.Profiles.Catalog;
+using Steam.Application.Profiles;
 using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Domain.Entities;
@@ -30,19 +30,23 @@ namespace Steam.API
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             #region Catalog Repositories
             builder.Services.AddScoped<IApplicationCatalogRepository, ApplicationCatalogRepository>();
+            builder.Services.AddScoped<IGenreRepository, GenreRepository>();
             #endregion
             #endregion
 
             #region Register Services
             #region Catalog Services
             builder.Services.AddScoped<IApplicationCatalogService, ApplicationCatalogService>();
+            builder.Services.AddScoped<IGenreService, GenreService>();
             #endregion
             #endregion
 
+            #region Register AutoMapper
             builder.Services.AddAutoMapper(cfg =>
             {
-                cfg.AddMaps(typeof(ApplicationCatalogProfile).Assembly);
+                cfg.AddMaps(typeof(CatalogProfile).Assembly);
             });
+            #endregion
 
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
             {
