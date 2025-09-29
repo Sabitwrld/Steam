@@ -6,6 +6,8 @@ using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Application.Services.Library.Implementations;
 using Steam.Application.Services.Library.Interfaces;
+using Steam.Application.Services.ReviewsRating.Implementations;
+using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Application.Services.Store.Implementations;
 using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities;
@@ -15,11 +17,13 @@ using Steam.Infrastructure.Repositories.Implementations;
 using Steam.Infrastructure.Repositories.Implementations.Catalog;
 using Steam.Infrastructure.Repositories.Implementations.Library;
 using Steam.Infrastructure.Repositories.Implementations.Orders;
+using Steam.Infrastructure.Repositories.Implementations.ReviewsRating;
 using Steam.Infrastructure.Repositories.Implementations.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
 using Steam.Infrastructure.Repositories.Interfaces.Catalog;
 using Steam.Infrastructure.Repositories.Interfaces.Library;
 using Steam.Infrastructure.Repositories.Interfaces.Orders;
+using Steam.Infrastructure.Repositories.Interfaces.ReviewsRating;
 using Steam.Infrastructure.Repositories.Interfaces.Store;
 
 namespace Steam.API
@@ -65,6 +69,10 @@ namespace Steam.API
             builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
             builder.Services.AddScoped<IUserLibraryRepository, UserLibraryRepository>();
             #endregion
+            #region Reviews & Rating Repositories
+            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+            builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+            #endregion
             #endregion
 
             #region Register Services
@@ -90,6 +98,10 @@ namespace Steam.API
             builder.Services.AddScoped<ILicenseService, LicenseService>();
             builder.Services.AddScoped<IUserLibraryService, UserLibraryService>();
             #endregion
+            #region Reviews & Rating Services
+            builder.Services.AddScoped<IReviewService, ReviewService>();
+            builder.Services.AddScoped<IRatingService, RatingService>();
+            #endregion
             #endregion
 
             #region Register AutoMapper
@@ -103,6 +115,18 @@ namespace Steam.API
                 cfg.AddMaps(typeof(StoreProfile).Assembly);
             });
 
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(OrdersProfile).Assembly);
+            });
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(LibraryProfile).Assembly);
+            });
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(ReviewRatingProfile).Assembly);
+            });
             #endregion
 
 

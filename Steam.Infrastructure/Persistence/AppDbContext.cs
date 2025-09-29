@@ -5,6 +5,7 @@ using Steam.Domain.Entities.Catalog;
 using Steam.Domain.Entities.Common;
 using Steam.Domain.Entities.Library;
 using Steam.Domain.Entities.Orders;
+using Steam.Domain.Entities.ReviewsRating;
 using Steam.Domain.Entities.Store;
 using System.Linq.Expressions;
 
@@ -36,6 +37,9 @@ namespace Steam.Infrastructure.Persistence
 
         public DbSet<UserLibrary> UserLibraries { get; set; } = default!;
         public DbSet<License> Licenses { get; set; } = default!;
+        
+        public DbSet<Review> Reviews { get; set; } = default!;
+        public DbSet<Rating> Ratings { get; set; } = default!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
