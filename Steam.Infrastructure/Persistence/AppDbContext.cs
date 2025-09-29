@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Steam.Domain.Entities;
 using Steam.Domain.Entities.Catalog;
 using Steam.Domain.Entities.Common;
+using Steam.Domain.Entities.Library;
 using Steam.Domain.Entities.Orders;
 using Steam.Domain.Entities.Store;
 using System.Linq.Expressions;
@@ -33,6 +34,8 @@ namespace Steam.Infrastructure.Persistence
         public DbSet<Payment> Payments { get; set; } = default!;
         public DbSet<Refund> Refunds { get; set; } = default!;
 
+        public DbSet<UserLibrary> UserLibraries { get; set; } = default!;
+        public DbSet<License> Licenses { get; set; } = default!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

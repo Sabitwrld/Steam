@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Steam.Application.Profiles;
 using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
+using Steam.Application.Services.Library.Implementations;
+using Steam.Application.Services.Library.Interfaces;
 using Steam.Application.Services.Store.Implementations;
 using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities;
@@ -11,10 +13,12 @@ using Steam.Domain.Entities.Catalog;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
 using Steam.Infrastructure.Repositories.Implementations.Catalog;
+using Steam.Infrastructure.Repositories.Implementations.Library;
 using Steam.Infrastructure.Repositories.Implementations.Orders;
 using Steam.Infrastructure.Repositories.Implementations.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
 using Steam.Infrastructure.Repositories.Interfaces.Catalog;
+using Steam.Infrastructure.Repositories.Interfaces.Library;
 using Steam.Infrastructure.Repositories.Interfaces.Orders;
 using Steam.Infrastructure.Repositories.Interfaces.Store;
 
@@ -49,6 +53,18 @@ namespace Steam.API
             builder.Services.AddScoped<IRegionalPriceRepository, RegionalPriceRepository>();
             builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
             #endregion
+            #region Orders Repositories
+            builder.Services.AddScoped<ICartRepository, CartRepository>();
+            builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            builder.Services.AddScoped<IRefundRepository, RefundRepository>();
+            #endregion
+            #region Library Repositories
+            builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
+            builder.Services.AddScoped<IUserLibraryRepository, UserLibraryRepository>();
+            #endregion
             #endregion
 
             #region Register Services
@@ -66,6 +82,13 @@ namespace Steam.API
             builder.Services.AddScoped<IPricePointService, PricePointService>();
             builder.Services.AddScoped<IRegionalPriceService, RegionalPriceService>();
             builder.Services.AddScoped<IWishlistService, WishlistService>();
+            #endregion
+            #region Orders Services
+
+            #endregion
+            #region Library Services
+            builder.Services.AddScoped<ILicenseService, LicenseService>();
+            builder.Services.AddScoped<IUserLibraryService, UserLibraryService>();
             #endregion
             #endregion
 

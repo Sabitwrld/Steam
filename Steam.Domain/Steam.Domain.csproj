@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <Folder Include="Entities\Identity\" />
-    <Folder Include="Entities\Library\" />
     <Folder Include="Entities\Community\" />
     <Folder Include="Entities\Friends\" />
     <Folder Include="Entities\Chat\" />

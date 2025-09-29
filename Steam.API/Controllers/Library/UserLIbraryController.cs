@@ -1,0 +1,63 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Steam.Application.DTOs.Library.UserLibrary;
+using Steam.Application.DTOs.Pagination;
+using Steam.Application.Services.Library.Interfaces;
+
+namespace Steam.API.Controllers.Library
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UserLibraryController : ControllerBase
+    {
+        private readonly IUserLibraryService _userLibraryService;
+
+        public UserLibraryController(IUserLibraryService userLibraryService)
+        {
+            _userLibraryService = userLibraryService;
+        }
+
+        // GET: api/UserLibrary
+        [HttpGet]
+        public async Task<ActionResult<PagedResponse<UserLibraryListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _userLibraryService.GetAllUserLibrariesAsync(pageNumber, pageSize);
+            return Ok(result);
+        }
+
+        // GET: api/UserLibrary/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<UserLibraryReturnDto>> GetById(int id)
+        {
+            var result = await _userLibraryService.GetUserLibraryByIdAsync(id);
+            return Ok(result);
+        }
+
+        // POST: api/UserLibrary
+        [HttpPost]
+        public async Task<ActionResult<UserLibraryReturnDto>> Create([FromBody] UserLibraryCreateDto dto)
+        {
+            var result = await _userLibraryService.CreateUserLibraryAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+
+        // PUT: api/UserLibrary/5
+        [HttpPut("{id}")]
+        public async Task<ActionResult<UserLibraryReturnDto>> Update(int id, [FromBody] UserLibraryUpdateDto dto)
+        {
+            var result = await _userLibraryService.UpdateUserLibraryAsync(id, dto);
+            return Ok(result);
+        }
+
+        // DELETE: api/UserLibrary/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deleted = await _userLibraryService.DeleteUserLibraryAsync(id);
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
+    }
+}
