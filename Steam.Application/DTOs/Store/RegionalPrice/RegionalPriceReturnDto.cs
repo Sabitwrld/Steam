@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Steam.Application.DTOs.Store.RegionalPrice
+{
+    public record RegionalPriceReturnDto 
+    { 
+        public int Id { get; init; } 
+        public string Currency { get; init; } = default!; 
+        public decimal Amount { get; init; } 
+    }
+}

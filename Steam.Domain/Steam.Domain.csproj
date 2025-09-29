@@ -36,8 +36,6 @@
     <Folder Include="Entities\Notifications\" />
     <Folder Include="Entities\News\" />
     <Folder Include="Entities\Workshop\" />
-    <Folder Include="Entities\Orders\" />
-    <Folder Include="Entities\Pricing\" />
   </ItemGroup>
 
 </Project>

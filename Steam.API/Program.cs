@@ -4,13 +4,19 @@ using Microsoft.EntityFrameworkCore;
 using Steam.Application.Profiles;
 using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
+using Steam.Application.Services.Store.Implementations;
+using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities;
 using Steam.Domain.Entities.Catalog;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
 using Steam.Infrastructure.Repositories.Implementations.Catalog;
+using Steam.Infrastructure.Repositories.Implementations.Orders;
+using Steam.Infrastructure.Repositories.Implementations.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
 using Steam.Infrastructure.Repositories.Interfaces.Catalog;
+using Steam.Infrastructure.Repositories.Interfaces.Orders;
+using Steam.Infrastructure.Repositories.Interfaces.Store;
 
 namespace Steam.API
 {
@@ -35,6 +41,14 @@ namespace Steam.API
             builder.Services.AddScoped<ISystemRequirementsRepository, SystemRequirementsRepository>();
             builder.Services.AddScoped<ITagRepository, TagRepository>();
             #endregion
+            #region Store Repositories
+            builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+            builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
+            builder.Services.AddScoped<IPricePointRepository, PricePointRepository>();
+            builder.Services.AddScoped<IRegionalPriceRepository, RegionalPriceRepository>();
+            builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+            #endregion
             #endregion
 
             #region Register Services
@@ -45,6 +59,14 @@ namespace Steam.API
             builder.Services.AddScoped<ISystemRequirementsService, SystemRequirementsService>();
             builder.Services.AddScoped<ITagService, TagService>();
             #endregion
+            #region Store Services
+            builder.Services.AddScoped<ICampaignService, CampaignService>();
+            builder.Services.AddScoped<ICouponService, CouponService>();
+            builder.Services.AddScoped<IDiscountService, DiscountService>();
+            builder.Services.AddScoped<IPricePointService, PricePointService>();
+            builder.Services.AddScoped<IRegionalPriceService, RegionalPriceService>();
+            builder.Services.AddScoped<IWishlistService, WishlistService>();
+            #endregion
             #endregion
 
             #region Register AutoMapper
@@ -52,6 +74,12 @@ namespace Steam.API
             {
                 cfg.AddMaps(typeof(CatalogProfile).Assembly);
             });
+            
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(StoreProfile).Assembly);
+            });
+
             #endregion
 
 
@@ -81,6 +109,7 @@ namespace Steam.API
                 });
             });
 
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -89,6 +118,8 @@ namespace Steam.API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+            app.UseStaticFiles();
+
             app.UseCors();
 
             app.UseSwagger();
