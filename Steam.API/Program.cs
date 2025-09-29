@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Steam.Application.Profiles;
+using Steam.Application.Services.Achievements.Implementations;
+using Steam.Application.Services.Achievements.Interfaces;
 using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Application.Services.Library.Implementations;
@@ -14,12 +16,14 @@ using Steam.Domain.Entities;
 using Steam.Domain.Entities.Catalog;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
+using Steam.Infrastructure.Repositories.Implementations.Achievements;
 using Steam.Infrastructure.Repositories.Implementations.Catalog;
 using Steam.Infrastructure.Repositories.Implementations.Library;
 using Steam.Infrastructure.Repositories.Implementations.Orders;
 using Steam.Infrastructure.Repositories.Implementations.ReviewsRating;
 using Steam.Infrastructure.Repositories.Implementations.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
+using Steam.Infrastructure.Repositories.Interfaces.Achievements;
 using Steam.Infrastructure.Repositories.Interfaces.Catalog;
 using Steam.Infrastructure.Repositories.Interfaces.Library;
 using Steam.Infrastructure.Repositories.Interfaces.Orders;
@@ -73,6 +77,13 @@ namespace Steam.API
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IRatingRepository, RatingRepository>();
             #endregion
+            #region Achievements Repositories
+            builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
+            builder.Services.AddScoped<ICraftingRecipeRepository, CraftingRecipeRepository>();
+            builder.Services.AddScoped<ILeaderboardRepository, LeaderboardRepository>();
+            builder.Services.AddScoped<IUserAchievementRepository, UserAchievementRepository>();
+            builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
+            #endregion
             #endregion
 
             #region Register Services
@@ -102,6 +113,13 @@ namespace Steam.API
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddScoped<IRatingService, RatingService>();
             #endregion
+            #region Achievements Services
+            builder.Services.AddScoped<IAchievementService, AchievementService>();
+            builder.Services.AddScoped<ICraftingRecipeService, CraftingRecipeService>();
+            builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
+            builder.Services.AddScoped<IUserAchievementService, UserAchievementService>();
+            builder.Services.AddScoped<IBadgeService, BadgeService>();
+            #endregion
             #endregion
 
             #region Register AutoMapper
@@ -109,7 +127,7 @@ namespace Steam.API
             {
                 cfg.AddMaps(typeof(CatalogProfile).Assembly);
             });
-            
+
             builder.Services.AddAutoMapper(cfg =>
             {
                 cfg.AddMaps(typeof(StoreProfile).Assembly);
@@ -127,6 +145,12 @@ namespace Steam.API
             {
                 cfg.AddMaps(typeof(ReviewRatingProfile).Assembly);
             });
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(AchievementsMappingProfile).Assembly);
+            });
+
+
             #endregion
 
 
