@@ -11,10 +11,10 @@ namespace Steam.Application.Services.Catalog.Interfaces
 {
     public interface ISystemRequirementsService
     {
-        Task<SystemRequirementsReturnDto> CreateSystemRequirementsAsync(SystemRequirementsCreateDto dto);
-        Task<SystemRequirementsReturnDto> UpdateSystemRequirementsAsync(int id, SystemRequirementsUpdateDto dto);
-        Task<bool> DeleteSystemRequirementsAsync(int id);
-        Task<SystemRequirementsReturnDto> GetSystemRequirementsByIdAsync(int id);
-        Task<PagedResponse<SystemRequirementsListItemDto>> GetAllSystemRequirementsAsync(int pageNumber, int pageSize);
+        Task<SystemRequirementsReturnDto> GetByIdAsync(int id);
+        Task<PagedResponse<SystemRequirementsListItemDto>> GetAllAsync(int pageNumber, int pageSize);
+        Task<SystemRequirementsReturnDto> CreateAsync(SystemRequirementsCreateDto dto);
+        Task<SystemRequirementsReturnDto> UpdateAsync(int id, SystemRequirementsUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

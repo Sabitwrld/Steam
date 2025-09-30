@@ -8,7 +8,7 @@
         public string Developer { get; init; } = default!;
         public string Publisher { get; init; } = default!;
         public string ApplicationType { get; init; } = default!;
-        public List<int> GenreIds { get; init; } = new();
-        public List<int> TagIds { get; init; } = new();
+        public List<int>? GenreIds { get; init; }
+        public List<int>? TagIds { get; init; }
     }
 }

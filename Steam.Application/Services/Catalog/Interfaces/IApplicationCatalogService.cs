@@ -10,10 +10,10 @@ namespace Steam.Application.Services.Catalog.Interfaces
 {
     public interface IApplicationCatalogService
     {
-        Task<ApplicationCatalogReturnDto> CreateApplicationCatalogAsync(ApplicationCatalogCreateDto dto);
-        Task<ApplicationCatalogReturnDto> UpdateApplicationCatalogAsync(int id, ApplicationCatalogUpdateDto dto);
-        Task<bool> DeleteApplicationCatalogAsync(int id);
-        Task<ApplicationCatalogReturnDto> GetApplicationCatalogByIdAsync(int id);
-        Task<PagedResponse<ApplicationCatalogListItemDto>> GetAllApplicationCatalogAsync(int pageNumber, int pageSize);
+        Task<ApplicationCatalogReturnDto> GetByIdAsync(int id);
+        Task<PagedResponse<ApplicationCatalogListItemDto>> GetAllAsync(int pageNumber, int pageSize);
+        Task<ApplicationCatalogReturnDto> CreateAsync(ApplicationCatalogCreateDto dto);
+        Task<ApplicationCatalogReturnDto> UpdateAsync(int id, ApplicationCatalogUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

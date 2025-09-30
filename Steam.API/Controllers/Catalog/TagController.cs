@@ -8,56 +8,53 @@ using Steam.Application.Services.Catalog.Interfaces;
 
 namespace Steam.API.Controllers.Catalog
 {
-    [Route("api/[controller]")]
+    [Route("api/tags")]
     [ApiController]
     public class TagController : ControllerBase
     {
-        private readonly ITagService _tagService;
-        public TagController(ITagService tagService)
+        private readonly ITagService _service;
+
+        public TagController(ITagService service)
         {
-            _tagService = tagService;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<ActionResult<PagedResponse<TagListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResponse<TagListItemDto>>> GetAll(
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _tagService.GetAllTagAsync(pageNumber, pageSize);
+            var result = await _service.GetAllAsync(pageNumber, pageSize);
             return Ok(result);
         }
 
-        // GET: api/tag/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TagReturnDto>> GetById(int id)
         {
-            var result = await _tagService.GetTagByIdAsync(id);
+            var result = await _service.GetByIdAsync(id);
             return Ok(result);
         }
 
-        // POST: api/tag
         [HttpPost]
         public async Task<ActionResult<TagReturnDto>> Create([FromBody] TagCreateDto dto)
         {
-            var result = await _tagService.CreateTagAsync(dto);
+            var result = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // PUT: api/tag/5
         [HttpPut("{id}")]
         public async Task<ActionResult<TagReturnDto>> Update(int id, [FromBody] TagUpdateDto dto)
         {
-            var result = await _tagService.UpdateTagAsync(id, dto);
+            var result = await _service.UpdateAsync(id, dto);
             return Ok(result);
         }
 
-        // DELETE: api/tag/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _tagService.DeleteTagAsync(id);
-            if (!deleted)
-                return NotFound();
-
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound();
             return NoContent();
         }
     }
+
 }

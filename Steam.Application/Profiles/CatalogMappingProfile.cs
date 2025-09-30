@@ -13,38 +13,40 @@ using System.Threading.Tasks;
 
 namespace Steam.Application.Profiles
 {
-    public class CatalogProfile : Profile
+    public class CatalogMappingProfile : Profile
     {
-        public CatalogProfile()
+        public CatalogMappingProfile()
         {
+            // ApplicationCatalog
+            CreateMap<ApplicationCatalog, ApplicationCatalogReturnDto>();
+            CreateMap<ApplicationCatalog, ApplicationCatalogListItemDto>();
             CreateMap<ApplicationCatalogCreateDto, ApplicationCatalog>();
             CreateMap<ApplicationCatalogUpdateDto, ApplicationCatalog>();
-            CreateMap<ApplicationCatalog, ApplicationCatalogReturnDto>()
-                .ForMember(dest => dest.Genres, opt => opt.MapFrom(src => src.Genres.Select(g => g.Name)))
-                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(t => t.Name)))
-                .ForMember(dest => dest.MediaUrls, opt => opt.MapFrom(src => src.Media.Select(m => m.Url)));
-            CreateMap<ApplicationCatalog, ApplicationCatalogListItemDto>();
 
+            // Genre
             CreateMap<Genre, GenreReturnDto>();
             CreateMap<Genre, GenreListItemDto>();
             CreateMap<GenreCreateDto, Genre>();
             CreateMap<GenreUpdateDto, Genre>();
 
-            CreateMap<Media, MediaReturnDto>();
-            CreateMap<Media, MediaListItemDto>();
-            CreateMap<MediaCreateDto, Media>();
-            CreateMap<MediaUpdateDto, Media>();
-
-            CreateMap<SystemRequirements, SystemRequirementsReturnDto>();
-            CreateMap<SystemRequirements, SystemRequirementsListItemDto>();
-            CreateMap<SystemRequirementsCreateDto, SystemRequirements>();
-            CreateMap<SystemRequirementsUpdateDto, SystemRequirements>();
-
+            // Tag
             CreateMap<Tag, TagReturnDto>();
             CreateMap<Tag, TagListItemDto>();
             CreateMap<TagCreateDto, Tag>();
             CreateMap<TagUpdateDto, Tag>();
 
+            // Media
+            CreateMap<Media, MediaReturnDto>();
+            CreateMap<Media, MediaListItemDto>();
+            CreateMap<MediaCreateDto, Media>();
+            CreateMap<MediaUpdateDto, Media>();
+
+            // SystemRequirements
+            CreateMap<SystemRequirements, SystemRequirementsReturnDto>();
+            CreateMap<SystemRequirements, SystemRequirementsListItemDto>();
+            CreateMap<SystemRequirementsCreateDto, SystemRequirements>();
+            CreateMap<SystemRequirementsUpdateDto, SystemRequirements>();
         }
     }
+
 }

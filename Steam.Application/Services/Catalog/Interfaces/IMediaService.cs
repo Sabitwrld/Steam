@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Steam.Application.Services.Catalog.Interfaces
 {
-    public interface IMediaService 
+    public interface IMediaService
     {
-        Task<MediaReturnDto> CreateMediaAsync(MediaCreateDto dto);
-        Task<MediaReturnDto> UpdateMediaAsync(int id, MediaUpdateDto dto);
-        Task<bool> DeleteMediaAsync(int id);
-        Task<MediaReturnDto> GetMediaByIdAsync(int id);
-        Task<PagedResponse<MediaListItemDto>> GetAllMediaAsync(int pageNumber, int pageSize);
+        Task<MediaReturnDto> GetByIdAsync(int id);
+        Task<PagedResponse<MediaListItemDto>> GetAllAsync(int pageNumber, int pageSize);
+        Task<MediaReturnDto> CreateAsync(MediaCreateDto dto);
+        Task<MediaReturnDto> UpdateAsync(int id, MediaUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

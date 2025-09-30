@@ -5,7 +5,7 @@ using Steam.Application.Services.Auth.Interfaces;
 
 namespace Steam.API.Controllers.Auth
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {

@@ -1,4 +1,7 @@
-﻿namespace Steam.Application.DTOs.Catalog.Application
+﻿using Steam.Application.DTOs.Catalog.Genre;
+using Steam.Application.DTOs.Catalog.Tag;
+
+namespace Steam.Application.DTOs.Catalog.Application
 {
     public record ApplicationCatalogReturnDto
     {
@@ -9,8 +12,7 @@
         public string Developer { get; init; } = default!;
         public string Publisher { get; init; } = default!;
         public string ApplicationType { get; init; } = default!;
-        public List<string> Genres { get; init; } = new();
-        public List<string> Tags { get; init; } = new();
-        public List<string> MediaUrls { get; init; } = new();
+        public List<GenreListItemDto> Genres { get; init; } = new();
+        public List<TagListItemDto> Tags { get; init; } = new();
     }
 }

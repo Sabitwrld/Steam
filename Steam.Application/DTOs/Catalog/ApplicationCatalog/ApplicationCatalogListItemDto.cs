@@ -7,6 +7,5 @@
         public string Developer { get; init; } = default!;
         public string Publisher { get; init; } = default!;
         public string ApplicationType { get; init; } = default!;
-        public DateTime ReleaseDate { get; init; }
     }
 }

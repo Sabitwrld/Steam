@@ -3,7 +3,7 @@
     public record SystemRequirementsCreateDto
     {
         public int ApplicationId { get; init; }
-        public string RequirementType { get; init; } = default!;  // Minimum / Recommended
+        public string RequirementType { get; init; } = default!;
         public string OS { get; init; } = default!;
         public string CPU { get; init; } = default!;
         public string GPU { get; init; } = default!;

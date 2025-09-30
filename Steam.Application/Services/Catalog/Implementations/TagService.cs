@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Catalog.Genre;
 using Steam.Application.DTOs.Catalog.Tag;
 using Steam.Application.DTOs.Pagination;
@@ -15,70 +16,55 @@ namespace Steam.Application.Services.Catalog.Implementations
 {
     public class TagService : ITagService
     {
-        private readonly IRepository<Tag> _repository;
+        private readonly IRepository<Tag> _repo;
         private readonly IMapper _mapper;
 
-        public TagService(IRepository<Tag> repository, IMapper mapper)
+        public TagService(IRepository<Tag> repo, IMapper mapper)
         {
-            _repository = repository;
+            _repo = repo;
             _mapper = mapper;
         }
 
-        public async Task<TagReturnDto> CreateTagAsync(TagCreateDto dto)
+        public async Task<TagReturnDto> GetByIdAsync(int id)
         {
-            var entity = _mapper.Map<Tag>(dto);
-            var created = await _repository.CreateAsync(entity);
-            return _mapper.Map<TagReturnDto>(created);
-        }
-
-        public async Task<TagReturnDto> UpdateTagAsync(int id, TagUpdateDto dto)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null)
-                throw new KeyNotFoundException($"Tag with Id {id} not found.");
-
-            _mapper.Map(dto, entity);
-            var updated = await _repository.UpdateAsync(entity);
-            return _mapper.Map<TagReturnDto>(updated);
-        }
-
-        public async Task<bool> DeleteTagAsync(int id)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null)
-                return false;
-
-            return await _repository.DeleteAsync(entity);
-        }
-
-        public async Task<TagReturnDto> GetTagByIdAsync(int id)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null)
-                throw new KeyNotFoundException($"Tag with Id {id} not found.");
-
+            var entity = await _repo.GetByIdAsync(id, q => q.Include(t => t.Applications));
             return _mapper.Map<TagReturnDto>(entity);
         }
 
-        public async Task<PagedResponse<TagListItemDto>> GetAllTagAsync(int pageNumber, int pageSize)
+        public async Task<PagedResponse<TagListItemDto>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
-
-            var totalCount = query.Count();
-            var items = query.Skip((pageNumber - 1) * pageSize)
-                             .Take(pageSize)
-                             .ToList();
-
-            var mappedItems = _mapper.Map<List<TagListItemDto>>(items);
-
+            var entities = await _repo.GetAllAsync(skip: (pageNumber - 1) * pageSize, take: pageSize);
             return new PagedResponse<TagListItemDto>
             {
+                Data = _mapper.Map<List<TagListItemDto>>(entities),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                Data = mappedItems
+                TotalCount = await _repo.GetQuery().CountAsync()
             };
+        }
 
+        public async Task<TagReturnDto> CreateAsync(TagCreateDto dto)
+        {
+            var entity = _mapper.Map<Tag>(dto);
+            await _repo.CreateAsync(entity);
+            return _mapper.Map<TagReturnDto>(entity);
+        }
+
+        public async Task<TagReturnDto> UpdateAsync(int id, TagUpdateDto dto)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) throw new Exception("Tag not found");
+
+            _mapper.Map(dto, entity);
+            await _repo.UpdateAsync(entity);
+            return _mapper.Map<TagReturnDto>(entity);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return false;
+            return await _repo.DeleteAsync(entity);
         }
     }
 }

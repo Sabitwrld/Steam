@@ -11,10 +11,10 @@ namespace Steam.Application.Services.Catalog.Interfaces
 {
     public interface ITagService
     {
-        Task<TagReturnDto> CreateTagAsync(TagCreateDto dto);
-        Task<TagReturnDto> UpdateTagAsync(int id, TagUpdateDto dto);
-        Task<bool> DeleteTagAsync(int id);
-        Task<TagReturnDto> GetTagByIdAsync(int id);
-        Task<PagedResponse<TagListItemDto>> GetAllTagAsync(int pageNumber, int pageSize);
+        Task<TagReturnDto> GetByIdAsync(int id);
+        Task<PagedResponse<TagListItemDto>> GetAllAsync(int pageNumber, int pageSize);
+        Task<TagReturnDto> CreateAsync(TagCreateDto dto);
+        Task<TagReturnDto> UpdateAsync(int id, TagUpdateDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

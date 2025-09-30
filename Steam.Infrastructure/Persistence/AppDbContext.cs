@@ -37,7 +37,7 @@ namespace Steam.Infrastructure.Persistence
 
         public DbSet<UserLibrary> UserLibraries { get; set; } = default!;
         public DbSet<License> Licenses { get; set; } = default!;
-        
+
         public DbSet<Review> Reviews { get; set; } = default!;
         public DbSet<Rating> Ratings { get; set; } = default!;
 
@@ -47,7 +47,45 @@ namespace Steam.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            // Bütün BaseEntity-ləri soft delete üçün filterləyirik
+            // ApplicationCatalog <-> Genre
+            modelBuilder.Entity<ApplicationCatalog>()
+                .HasMany(a => a.Genres)
+                .WithMany(g => g.Applications)
+                .UsingEntity<ApplicationCatalogGenre>(
+                    j => j
+                        .HasOne(ag => ag.Genre)
+                        .WithMany()
+                        .HasForeignKey(ag => ag.GenreId),
+                    j => j
+                        .HasOne(ag => ag.ApplicationCatalog)
+                        .WithMany()
+                        .HasForeignKey(ag => ag.ApplicationCatalogId),
+                    j =>
+                    {
+                        j.HasKey(t => new { t.ApplicationCatalogId, t.GenreId });
+                        j.ToTable("ApplicationCatalogGenres");
+                    });
+
+            // ApplicationCatalog <-> Tag
+            modelBuilder.Entity<ApplicationCatalog>()
+                .HasMany(a => a.Tags)
+                .WithMany(t => t.Applications)
+                .UsingEntity<ApplicationCatalogTag>(
+                    j => j
+                        .HasOne(at => at.Tag)
+                        .WithMany()
+                        .HasForeignKey(at => at.TagId),
+                    j => j
+                        .HasOne(at => at.ApplicationCatalog)
+                        .WithMany()
+                        .HasForeignKey(at => at.ApplicationCatalogId),
+                    j =>
+                    {
+                        j.HasKey(t => new { t.ApplicationCatalogId, t.TagId });
+                        j.ToTable("ApplicationCatalogTags");
+                    });
+
+            // Soft delete filter
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
@@ -61,6 +99,7 @@ namespace Steam.Infrastructure.Persistence
                 }
             }
         }
+
 
     }
 }

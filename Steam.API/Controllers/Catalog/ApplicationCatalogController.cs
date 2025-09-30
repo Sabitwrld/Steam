@@ -7,57 +7,53 @@ using Steam.Infrastructure.Repositories.Interfaces.Catalog;
 
 namespace Steam.API.Controllers.Catalog
 {
-    [Route("api/[controller]")]
+    [Route("api/catalog")]
     [ApiController]
     public class ApplicationCatalogController : ControllerBase
     {
-        private readonly IApplicationCatalogService _applicationCatalogService;
+        private readonly IApplicationCatalogService _service;
 
-        public ApplicationCatalogController(IApplicationCatalogService applicationCatalogService)
+        public ApplicationCatalogController(IApplicationCatalogService service)
         {
-            _applicationCatalogService = applicationCatalogService;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<ActionResult<PagedResponse<ApplicationCatalogListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResponse<ApplicationCatalogListItemDto>>> GetAll(
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _applicationCatalogService.GetAllApplicationCatalogAsync(pageNumber, pageSize);
+            var result = await _service.GetAllAsync(pageNumber, pageSize);
             return Ok(result);
         }
 
-        // GET: api/ApplicationCatalog/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ApplicationCatalogReturnDto>> GetById(int id)
         {
-            var result = await _applicationCatalogService.GetApplicationCatalogByIdAsync(id);
+            var result = await _service.GetByIdAsync(id);
             return Ok(result);
         }
 
-        // POST: api/ApplicationCatalog
         [HttpPost]
         public async Task<ActionResult<ApplicationCatalogReturnDto>> Create([FromBody] ApplicationCatalogCreateDto dto)
         {
-            var result = await _applicationCatalogService.CreateApplicationCatalogAsync(dto);
+            var result = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // PUT: api/ApplicationCatalog/5
         [HttpPut("{id}")]
         public async Task<ActionResult<ApplicationCatalogReturnDto>> Update(int id, [FromBody] ApplicationCatalogUpdateDto dto)
         {
-            var result = await _applicationCatalogService.UpdateApplicationCatalogAsync(id, dto);
+            var result = await _service.UpdateAsync(id, dto);
             return Ok(result);
         }
 
-        // DELETE: api/ApplicationCatalog/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _applicationCatalogService.DeleteApplicationCatalogAsync(id);
-            if (!deleted)
-                return NotFound();
-
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound();
             return NoContent();
         }
     }
+
 }

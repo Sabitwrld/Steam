@@ -127,7 +127,7 @@ namespace Steam.API
             #region Register AutoMapper
             builder.Services.AddAutoMapper(cfg =>
             {
-                cfg.AddMaps(typeof(CatalogProfile).Assembly);
+                cfg.AddMaps(typeof(CatalogMappingProfile).Assembly);
             });
 
             builder.Services.AddAutoMapper(cfg =>
