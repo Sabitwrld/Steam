@@ -25,15 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\Identity\" />
-    <Folder Include="Entities\Community\" />
-    <Folder Include="Entities\Friends\" />
-    <Folder Include="Entities\Chat\" />
     <Folder Include="Entities\Inventory\" />
-    <Folder Include="Entities\Moderation\" />
-    <Folder Include="Entities\Notifications\" />
-    <Folder Include="Entities\News\" />
-    <Folder Include="Entities\Workshop\" />
   </ItemGroup>
 
 </Project>

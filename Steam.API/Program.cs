@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Steam.Application.Profiles;
 using Steam.Application.Services.Achievements.Implementations;
 using Steam.Application.Services.Achievements.Interfaces;
+using Steam.Application.Services.Auth.Implementations;
+using Steam.Application.Services.Auth.Interfaces;
 using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Application.Services.Library.Implementations;
@@ -12,8 +14,8 @@ using Steam.Application.Services.ReviewsRating.Implementations;
 using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Application.Services.Store.Implementations;
 using Steam.Application.Services.Store.Interfaces;
-using Steam.Domain.Entities;
 using Steam.Domain.Entities.Catalog;
+using Steam.Domain.Entities.Identity;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
 using Steam.Infrastructure.Repositories.Implementations.Achievements;
@@ -153,6 +155,8 @@ namespace Steam.API
 
             #endregion
 
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
 
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -165,10 +169,7 @@ namespace Steam.API
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders(); ;
 
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.OperationFilter<SwaggerFileOperationFilter>();
-            });
+           
 
             builder.Services.AddCors(options =>
             {
