@@ -1,4 +1,4 @@
-﻿    namespace Steam.Application.DTOs.Catalog.Application
+﻿namespace Steam.Application.DTOs.Catalog.Application
 {
     public record ApplicationCatalogListItemDto
     {

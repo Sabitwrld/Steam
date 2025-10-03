@@ -6,11 +6,6 @@ using Steam.Application.DTOs.Orders.OrderItem;
 using Steam.Application.DTOs.Orders.Payment;
 using Steam.Application.DTOs.Orders.Refund;
 using Steam.Domain.Entities.Orders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Profiles
 {
@@ -18,34 +13,37 @@ namespace Steam.Application.Profiles
     {
         public OrdersProfile()
         {
-            // Cart
-            CreateMap<Cart, CartReturnDto>();
-            CreateMap<Cart, CartListItemDto>().ForMember(d => d.ItemCount, opt => opt.MapFrom(s => s.Items.Count));
-            CreateMap<CartCreateDto, Cart>();
-            CreateMap<CartUpdateDto, Cart>();
-            //CartItem 
-            CreateMap<CartItem, CartItemReturnDto>();
+            // Cart & CartItem Mappings
+            CreateMap<Cart, CartReturnDto>(); // Note: TotalPrice will be calculated in the service layer.
+
+            CreateMap<CartItem, CartItemReturnDto>()
+                .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name));
+            // Note: Price is not on CartItem entity. It must be fetched and mapped in the service.
+
             CreateMap<CartItemCreateDto, CartItem>();
             CreateMap<CartItemUpdateDto, CartItem>();
-            //Order 
-            CreateMap<Order, OrderReturnDto>();
-            CreateMap<Order, OrderListItemDto>();
+
+
+            // Order & OrderItem Mappings
             CreateMap<OrderCreateDto, Order>();
-            CreateMap<OrderUpdateDto, Order>();
-            //OrderItem 
-            CreateMap<OrderItem, OrderItemReturnDto>();
-            CreateMap<OrderItemCreateDto, OrderItem>();
-            CreateMap<OrderItemUpdateDto, OrderItem>();
-            //Payment 
-            CreateMap<Payment, PaymentReturnDto>();
-            CreateMap<Payment, PaymentListItemDto>();
+
+            CreateMap<Order, OrderReturnDto>();
+
+            CreateMap<Order, OrderListItemDto>()
+                .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.Items.Count));
+
+            CreateMap<OrderItem, OrderItemReturnDto>()
+                .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name));
+
+
+            // Payment Mappings
             CreateMap<PaymentCreateDto, Payment>();
-            CreateMap<PaymentUpdateDto, Payment>();
-            //Refund 
-            CreateMap<Refund, RefundReturnDto>();
-            CreateMap<Refund, RefundListItemDto>();
+            CreateMap<Payment, PaymentReturnDto>();
+
+
+            // Refund Mappings
             CreateMap<RefundCreateDto, Refund>();
-            CreateMap<RefundUpdateDto, Refund>();
+            CreateMap<Refund, RefundReturnDto>();
         }
     }
 }

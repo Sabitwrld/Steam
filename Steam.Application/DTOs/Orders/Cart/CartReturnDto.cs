@@ -1,9 +1,4 @@
 ﻿using Steam.Application.DTOs.Orders.CartItem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.DTOs.Orders.Cart
 {
@@ -11,6 +6,7 @@ namespace Steam.Application.DTOs.Orders.Cart
     {
         public int Id { get; init; }
         public int UserId { get; init; }
-        public List<CartItemReturnDto> Items { get; init; } = new();
+        public List<CartItemReturnDto> Items { get; set; } = new(); // Changed to 'set'
+        public decimal TotalPrice { get; set; } // Changed to 'set'
     }
 }

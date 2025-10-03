@@ -2,11 +2,6 @@
 using Steam.Application.DTOs.ReviewsRating.Rating;
 using Steam.Application.DTOs.ReviewsRating.Review;
 using Steam.Domain.Entities.ReviewsRating;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Profiles
 {

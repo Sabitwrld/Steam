@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Steam.Application.Exceptions
+﻿namespace Steam.Application.Exceptions
 {
     /// <summary>
     /// Custom exception to be used when a specific resource is not found.

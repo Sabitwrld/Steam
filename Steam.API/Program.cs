@@ -13,11 +13,12 @@ using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Application.Services.Library.Implementations;
 using Steam.Application.Services.Library.Interfaces;
+using Steam.Application.Services.Orders.Implementations;
+using Steam.Application.Services.Orders.Interfaces;
 using Steam.Application.Services.ReviewsRating.Implementations;
 using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Application.Services.Store.Implementations;
 using Steam.Application.Services.Store.Interfaces;
-using Steam.Domain.Entities.Catalog;
 using Steam.Domain.Entities.Identity;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
@@ -114,7 +115,10 @@ namespace Steam.API
             builder.Services.AddScoped<IVoucherService, VoucherService>();
             #endregion
             #region Orders Services
-
+            builder.Services.AddScoped<ICartService, CartService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IRefundService, RefundService>();
             #endregion
             #region Library Services
             builder.Services.AddScoped<ILicenseService, LicenseService>();

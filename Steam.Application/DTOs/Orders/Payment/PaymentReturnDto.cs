@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Steam.Application.DTOs.Orders.Payment
+﻿namespace Steam.Application.DTOs.Orders.Payment
 {
     public record PaymentReturnDto
     {
@@ -13,5 +7,7 @@ namespace Steam.Application.DTOs.Orders.Payment
         public string Method { get; init; } = string.Empty;
         public string Status { get; init; } = string.Empty;
         public decimal Amount { get; init; }
+        public string? TransactionId { get; init; }
+        public DateTime? PaymentDate { get; init; }
     }
 }

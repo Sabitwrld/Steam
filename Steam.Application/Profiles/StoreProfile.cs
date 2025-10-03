@@ -8,11 +8,6 @@ using Steam.Application.DTOs.Store.RegionalPrice;
 using Steam.Application.DTOs.Store.Voucher;
 using Steam.Application.DTOs.Store.Wishlist;
 using Steam.Domain.Entities.Store;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Profiles
 {

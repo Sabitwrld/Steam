@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Steam.Application.DTOs.ReviewsRating.Rating
+﻿namespace Steam.Application.DTOs.ReviewsRating.Rating
 {
     public record RatingListItemDto
     {

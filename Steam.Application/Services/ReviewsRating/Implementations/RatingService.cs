@@ -4,11 +4,6 @@ using Steam.Application.DTOs.ReviewsRating.Rating;
 using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Domain.Entities.ReviewsRating;
 using Steam.Infrastructure.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.ReviewsRating.Implementations
 {

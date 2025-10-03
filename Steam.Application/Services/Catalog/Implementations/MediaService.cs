@@ -1,16 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Steam.Application.DTOs.Catalog.Genre;
 using Steam.Application.DTOs.Catalog.Media;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Domain.Entities.Catalog;
 using Steam.Infrastructure.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.Catalog.Implementations
 {
@@ -101,6 +95,6 @@ namespace Steam.Application.Services.Catalog.Implementations
             return _mapper.Map<MediaReturnDto>(entity);
         }
 
-       
+
     }
 }

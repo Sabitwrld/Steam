@@ -4,11 +4,6 @@ using Steam.Application.DTOs.Catalog.Media;
 using Steam.Application.DTOs.Catalog.SystemRequirements;
 using Steam.Application.DTOs.Catalog.Tag;
 using Steam.Application.DTOs.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.Catalog.Interfaces
 {

@@ -4,11 +4,6 @@ using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Achievements.Interfaces;
 using Steam.Domain.Entities.Achievements;
 using Steam.Infrastructure.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.Achievements.Implementations
 {

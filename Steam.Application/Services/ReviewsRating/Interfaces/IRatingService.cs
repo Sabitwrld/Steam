@@ -1,10 +1,5 @@
 ﻿using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.ReviewsRating.Rating;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.ReviewsRating.Interfaces
 {

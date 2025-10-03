@@ -1,9 +1,5 @@
-﻿using Steam.Domain.Entities.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Steam.Domain.Entities.Catalog;
+using Steam.Domain.Entities.Common;
 
 namespace Steam.Domain.Entities.Orders
 {
@@ -11,7 +7,11 @@ namespace Steam.Domain.Entities.Orders
     {
         public int CartId { get; set; }
         public Cart Cart { get; set; } = null!;
+
         public int ApplicationId { get; set; }
         public int Quantity { get; set; }
+
+        // Navigation property to easily access product details
+        public ApplicationCatalog Application { get; set; } = default!;
     }
 }

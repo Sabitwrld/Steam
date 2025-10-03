@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Catalog.Application;
 using Steam.Application.DTOs.Catalog.Genre;
 using Steam.Application.DTOs.Catalog.Media;
@@ -7,7 +6,6 @@ using Steam.Application.DTOs.Catalog.SystemRequirements;
 using Steam.Application.DTOs.Catalog.Tag;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Catalog.Interfaces;
-using Steam.Infrastructure.Repositories.Interfaces.Catalog;
 
 namespace Steam.API.Controllers.Catalog
 {
