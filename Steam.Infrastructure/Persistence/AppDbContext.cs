@@ -8,6 +8,7 @@ using Steam.Domain.Entities.Orders;
 using Steam.Domain.Entities.ReviewsRating;
 using Steam.Domain.Entities.Store;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Steam.Infrastructure.Persistence
 {
@@ -47,59 +48,7 @@ namespace Steam.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            // ApplicationCatalog <-> Genre
-            modelBuilder.Entity<ApplicationCatalog>()
-                .HasMany(a => a.Genres)
-                .WithMany(g => g.Applications)
-                .UsingEntity<ApplicationCatalogGenre>(
-                    j => j
-                        .HasOne(ag => ag.Genre)
-                        .WithMany()
-                        .HasForeignKey(ag => ag.GenreId),
-                    j => j
-                        .HasOne(ag => ag.ApplicationCatalog)
-                        .WithMany()
-                        .HasForeignKey(ag => ag.ApplicationCatalogId),
-                    j =>
-                    {
-                        j.HasKey(t => new { t.ApplicationCatalogId, t.GenreId });
-                        j.ToTable("ApplicationCatalogGenres");
-                    });
-
-            // ApplicationCatalog <-> Tag
-            modelBuilder.Entity<ApplicationCatalog>()
-                .HasMany(a => a.Tags)
-                .WithMany(t => t.Applications)
-                .UsingEntity<ApplicationCatalogTag>(
-                    j => j
-                        .HasOne(at => at.Tag)
-                        .WithMany()
-                        .HasForeignKey(at => at.TagId),
-                    j => j
-                        .HasOne(at => at.ApplicationCatalog)
-                        .WithMany()
-                        .HasForeignKey(at => at.ApplicationCatalogId),
-                    j =>
-                    {
-                        j.HasKey(t => new { t.ApplicationCatalogId, t.TagId });
-                        j.ToTable("ApplicationCatalogTags");
-                    });
-
-            // Soft delete filter
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
-                {
-                    var parameter = Expression.Parameter(entityType.ClrType, "e");
-                    var property = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
-                    var condition = Expression.Equal(property, Expression.Constant(false));
-                    var lambda = Expression.Lambda(condition, parameter);
-
-                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
-                }
-            }
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
-
-
     }
 }

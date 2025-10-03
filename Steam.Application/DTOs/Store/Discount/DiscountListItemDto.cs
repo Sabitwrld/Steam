@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Steam.Application.DTOs.Store.Discount
 {
-    public record DiscountListItemDto 
-    { 
-        public int Id { get; init; } 
-        public double Percentage { get; init; } 
+    public record DiscountListItemDto
+    {
+        public int Id { get; init; }
+        public int ApplicationId { get; init; }
+        public decimal Percentage { get; init; }
     }
 }

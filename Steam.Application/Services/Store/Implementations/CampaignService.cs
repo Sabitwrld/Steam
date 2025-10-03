@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Campaign;
+using Steam.Application.Exceptions;
 using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
@@ -26,19 +28,19 @@ namespace Steam.Application.Services.Store.Implementations
         public async Task<CampaignReturnDto> CreateCampaignAsync(CampaignCreateDto dto)
         {
             var entity = _mapper.Map<Campaign>(dto);
-            var created = await _repository.CreateAsync(entity);
-            return _mapper.Map<CampaignReturnDto>(created);
+            await _repository.CreateAsync(entity);
+            return _mapper.Map<CampaignReturnDto>(entity);
         }
 
         public async Task<CampaignReturnDto> UpdateCampaignAsync(int id, CampaignUpdateDto dto)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
-                throw new KeyNotFoundException($"Campaign with Id {id} not found.");
+                throw new NotFoundException(nameof(Campaign), id);
 
             _mapper.Map(dto, entity);
-            var updated = await _repository.UpdateAsync(entity);
-            return _mapper.Map<CampaignReturnDto>(updated);
+            await _repository.UpdateAsync(entity);
+            return _mapper.Map<CampaignReturnDto>(entity);
         }
 
         public async Task<bool> DeleteCampaignAsync(int id)
@@ -52,9 +54,13 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<CampaignReturnDto> GetCampaignByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _repository.GetEntityAsync(
+                predicate: c => c.Id == id,
+                includes: new Func<IQueryable<Campaign>, IQueryable<Campaign>>[] { q => q.Include(c => c.Discounts) }
+            );
+
             if (entity == null)
-                throw new KeyNotFoundException($"Campaign with Id {id} not found.");
+                throw new NotFoundException(nameof(Campaign), id);
 
             return _mapper.Map<CampaignReturnDto>(entity);
         }
@@ -62,20 +68,15 @@ namespace Steam.Application.Services.Store.Implementations
         public async Task<PagedResponse<CampaignListItemDto>> GetAllCampaignsAsync(int pageNumber, int pageSize)
         {
             var query = _repository.GetQuery(asNoTracking: true);
-
-            var totalCount = query.Count();
-            var items = query.Skip((pageNumber - 1) * pageSize)
-                             .Take(pageSize)
-                             .ToList();
-
-            var mappedItems = _mapper.Map<List<CampaignListItemDto>>(items);
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return new PagedResponse<CampaignListItemDto>
             {
+                Data = _mapper.Map<List<CampaignListItemDto>>(items),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                Data = mappedItems
+                TotalCount = totalCount
             };
         }
     }

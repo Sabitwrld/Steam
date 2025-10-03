@@ -19,45 +19,61 @@ namespace Steam.Application.Profiles
     public class StoreProfile : Profile
     {
         public StoreProfile()
-        { 
-            // 📌 PRICE POINT 
-            CreateMap<PricePoint, PricePointReturnDto>();
-            CreateMap<PricePoint, PricePointListItemDto>();
-            CreateMap<PricePointCreateDto, PricePoint>();
-            CreateMap<PricePointUpdateDto, PricePoint>();
-            //📌 REGIONAL PRICE 
-            CreateMap<RegionalPrice, RegionalPriceReturnDto>();
-            CreateMap<RegionalPrice, RegionalPriceListItemDto>();
-            CreateMap<RegionalPriceCreateDto, RegionalPrice>();
-            CreateMap<RegionalPriceUpdateDto, RegionalPrice>();
-            //📌 DISCOUNT 
-            CreateMap<Discount, DiscountReturnDto>();
-            CreateMap<Discount, DiscountListItemDto>();
-            CreateMap<DiscountCreateDto, Discount>();
-            CreateMap<DiscountUpdateDto, Discount>();
-            //📌 COUPON 
-            CreateMap<Coupon, CouponReturnDto>();
-            CreateMap<Coupon, CouponListItemDto>();
-            CreateMap<CouponCreateDto, Coupon>();
-            CreateMap<CouponUpdateDto, Coupon>();
-            //📌 CAMPAIGN 
-            CreateMap<Campaign, CampaignReturnDto>();
-            CreateMap<Campaign, CampaignListItemDto>();
+        {
+            // CAMPAIGN
             CreateMap<CampaignCreateDto, Campaign>();
             CreateMap<CampaignUpdateDto, Campaign>();
-            //📌 WISHLIST 
-            CreateMap<Wishlist, WishlistReturnDto>();
-            CreateMap<Wishlist, WishlistListItemDto>();
-            CreateMap<WishlistCreateDto, Wishlist>();
-            // 📌 GIFT 
+            CreateMap<Campaign, CampaignReturnDto>(); // This will automatically map the Discounts collection if names match
+            CreateMap<Campaign, CampaignListItemDto>();
+
+            // COUPON
+            CreateMap<CouponCreateDto, Coupon>()
+                .ForMember(dest => dest.DiscountPercent, opt => opt.MapFrom(src => src.Percentage))
+                .ForMember(dest => dest.ExpiryDate, opt => opt.MapFrom(src => src.ExpirationDate));
+
+            CreateMap<CouponUpdateDto, Coupon>()
+                .ForMember(dest => dest.DiscountPercent, opt => opt.MapFrom(src => src.Percentage))
+                .ForMember(dest => dest.ExpiryDate, opt => opt.MapFrom(src => src.ExpirationDate));
+
+            CreateMap<Coupon, CouponReturnDto>()
+                .ForMember(dest => dest.Percentage, opt => opt.MapFrom(src => src.DiscountPercent))
+                .ForMember(dest => dest.ExpirationDate, opt => opt.MapFrom(src => src.ExpiryDate));
+
+            CreateMap<Coupon, CouponListItemDto>();
+
+            // DISCOUNT
+            CreateMap<DiscountCreateDto, Discount>();
+            CreateMap<DiscountUpdateDto, Discount>();
+            CreateMap<Discount, DiscountReturnDto>();
+            CreateMap<Discount, DiscountListItemDto>();
+
+            // GIFT
+            CreateMap<GiftCreateDto, Gift>();
             CreateMap<Gift, GiftReturnDto>();
             CreateMap<Gift, GiftListItemDto>();
-            CreateMap<GiftCreateDto, Gift>();
-            //📌 VOUCHER 
-            CreateMap<Voucher, VoucherReturnDto>();
-            CreateMap<Voucher, VoucherListItemDto>();
+
+            // PRICE POINT
+            CreateMap<PricePointCreateDto, PricePoint>();
+            CreateMap<PricePointUpdateDto, PricePoint>();
+            CreateMap<PricePoint, PricePointReturnDto>(); // This will automatically map RegionalPrices
+            CreateMap<PricePoint, PricePointListItemDto>();
+
+            // REGIONAL PRICE
+            CreateMap<RegionalPriceCreateDto, RegionalPrice>();
+            CreateMap<RegionalPriceUpdateDto, RegionalPrice>();
+            CreateMap<RegionalPrice, RegionalPriceReturnDto>();
+            CreateMap<RegionalPrice, RegionalPriceListItemDto>();
+
+            // VOUCHER
             CreateMap<VoucherCreateDto, Voucher>();
             CreateMap<VoucherUpdateDto, Voucher>();
+            CreateMap<Voucher, VoucherReturnDto>();
+            CreateMap<Voucher, VoucherListItemDto>();
+
+            // WISHLIST
+            CreateMap<WishlistCreateDto, Wishlist>();
+            CreateMap<Wishlist, WishlistReturnDto>();
+            CreateMap<Wishlist, WishlistListItemDto>();
         }
     }
 }

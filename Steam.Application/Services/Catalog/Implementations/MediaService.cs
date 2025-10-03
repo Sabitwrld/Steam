@@ -18,11 +18,13 @@ namespace Steam.Application.Services.Catalog.Implementations
     {
         private readonly IRepository<Media> _repo;
         private readonly IMapper _mapper;
+        private readonly FileService _fileService;
 
-        public MediaService(IRepository<Media> repo, IMapper mapper)
+        public MediaService(IRepository<Media> repo, IMapper mapper, FileService fileService)
         {
             _repo = repo;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
         public async Task<MediaReturnDto> GetByIdAsync(int id)
@@ -43,11 +45,50 @@ namespace Steam.Application.Services.Catalog.Implementations
             };
         }
 
+        // We need a new method to handle file uploads
+        public async Task<MediaReturnDto> CreateWithFileAsync(MediaUploadDto dto)
+        {
+            // 1. Save the file and get its URL
+            var fileUrl = await _fileService.SaveFileAsync(dto.File);
+
+            // 2. Create the entity
+            var entity = new Media
+            {
+                ApplicationId = dto.ApplicationId,
+                MediaType = dto.MediaType,
+                Order = dto.Order,
+                Url = fileUrl // Use the URL from the saved file
+            };
+
+            // 3. Save to database
+            await _repo.CreateAsync(entity);
+            return _mapper.Map<MediaReturnDto>(entity);
+        }
+
+        // This method can remain for creating media with an existing URL
         public async Task<MediaReturnDto> CreateAsync(MediaCreateDto dto)
         {
             var entity = _mapper.Map<Media>(dto);
             await _repo.CreateAsync(entity);
             return _mapper.Map<MediaReturnDto>(entity);
+        }
+
+        // Update the DeleteAsync method to also delete the file
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return false;
+
+            // Delete from database (soft delete)
+            var result = await _repo.DeleteAsync(entity);
+
+            if (result)
+            {
+                // Delete the physical file
+                _fileService.DeleteFile(entity.Url);
+            }
+
+            return result;
         }
 
         public async Task<MediaReturnDto> UpdateAsync(int id, MediaUpdateDto dto)
@@ -60,11 +101,6 @@ namespace Steam.Application.Services.Catalog.Implementations
             return _mapper.Map<MediaReturnDto>(entity);
         }
 
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return false;
-            return await _repo.DeleteAsync(entity);
-        }
+       
     }
 }

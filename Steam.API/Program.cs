@@ -1,7 +1,10 @@
 ﻿
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Steam.API.Middlewares;
 using Steam.Application.Profiles;
+using Steam.Application.Services;
 using Steam.Application.Services.Achievements.Implementations;
 using Steam.Application.Services.Achievements.Interfaces;
 using Steam.Application.Services.Auth.Implementations;
@@ -31,6 +34,7 @@ using Steam.Infrastructure.Repositories.Interfaces.Library;
 using Steam.Infrastructure.Repositories.Interfaces.Orders;
 using Steam.Infrastructure.Repositories.Interfaces.ReviewsRating;
 using Steam.Infrastructure.Repositories.Interfaces.Store;
+using System.Reflection;
 
 namespace Steam.API
 {
@@ -62,6 +66,8 @@ namespace Steam.API
             builder.Services.AddScoped<IPricePointRepository, PricePointRepository>();
             builder.Services.AddScoped<IRegionalPriceRepository, RegionalPriceRepository>();
             builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+            builder.Services.AddScoped<IGiftRepository, GiftRepository>();
+            builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
             #endregion
             #region Orders Repositories
             builder.Services.AddScoped<ICartRepository, CartRepository>();
@@ -89,6 +95,7 @@ namespace Steam.API
             #endregion
 
             #region Register Services
+            builder.Services.AddScoped<FileService>();
             #region Catalog Services
             builder.Services.AddScoped<IApplicationCatalogService, ApplicationCatalogService>();
             builder.Services.AddScoped<IGenreService, GenreService>();
@@ -103,6 +110,8 @@ namespace Steam.API
             builder.Services.AddScoped<IPricePointService, PricePointService>();
             builder.Services.AddScoped<IRegionalPriceService, RegionalPriceService>();
             builder.Services.AddScoped<IWishlistService, WishlistService>();
+            builder.Services.AddScoped<IGiftService, GiftService>();
+            builder.Services.AddScoped<IVoucherService, VoucherService>();
             #endregion
             #region Orders Services
 
@@ -169,7 +178,7 @@ namespace Steam.API
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders(); ;
 
-           
+
 
             builder.Services.AddCors(options =>
             {
@@ -182,12 +191,18 @@ namespace Steam.API
             });
 
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+            .AddFluentValidation(options =>
+            {
+                options.RegisterValidatorsFromAssembly(Assembly.Load("Steam.Application"));
+            });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             // Configure the HTTP request pipeline.
             app.UseStaticFiles();

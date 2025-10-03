@@ -14,6 +14,7 @@ namespace Steam.Application.Services.Catalog.Interfaces
         Task<MediaReturnDto> GetByIdAsync(int id);
         Task<PagedResponse<MediaListItemDto>> GetAllAsync(int pageNumber, int pageSize);
         Task<MediaReturnDto> CreateAsync(MediaCreateDto dto);
+        Task<MediaReturnDto> CreateWithFileAsync(MediaUploadDto dto); // Add this new method
         Task<MediaReturnDto> UpdateAsync(int id, MediaUpdateDto dto);
         Task<bool> DeleteAsync(int id);
     }

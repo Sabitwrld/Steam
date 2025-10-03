@@ -10,10 +10,11 @@ namespace Steam.Domain.Entities.Store
 {
     public class RegionalPrice : BaseEntity
     {
-        public int ApplicationId { get; set; }
-        public string Region { get; set; } = default!; // e.g., "AZN", "USD", "EUR"
+        public int PricePointId { get; set; }
+        public string Currency { get; set; } = default!; // e.g., "AZN", "USD", "EUR"
         public decimal Amount { get; set; }
 
-        public ApplicationCatalog Application { get; set; } = default!;
+        // Navigation Property
+        public PricePoint PricePoint { get; set; } = default!;
     }
 }

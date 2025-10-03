@@ -39,6 +39,19 @@ namespace Steam.API.Controllers.Catalog
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
+        // This new endpoint handles file uploads
+        [HttpPost("upload")]
+        public async Task<ActionResult<MediaReturnDto>> CreateWithUpload([FromForm] MediaUploadDto dto)
+        {
+            if (dto.File == null || dto.File.Length == 0)
+            {
+                return BadRequest("File is required.");
+            }
+
+            var result = await _service.CreateWithFileAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+
         [HttpPut("{id}")]
         public async Task<ActionResult<MediaReturnDto>> Update(int id, [FromBody] MediaUpdateDto dto)
         {

@@ -15,6 +15,8 @@ namespace Steam.Domain.Entities.Store
         public int ApplicationId { get; set; }
         public DateTime SentAt { get; set; }
 
+        public bool IsRedeemed { get; set; } // This property was missing
+
         public ApplicationCatalog Application { get; set; } = default!;
     }
 }

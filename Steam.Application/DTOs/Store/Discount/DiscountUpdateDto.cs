@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Steam.Application.DTOs.Store.Discount
 {
-    public record DiscountUpdateDto 
-    { 
-        public int Id { get; init; } 
-        public int PricePointId { get; init; } 
-        public double Percentage { get; init; } 
-        public DateTime StartDate { get; init; } 
-        public DateTime EndDate { get; init; } 
+    public record DiscountUpdateDto
+    {
+        public int Id { get; init; }
+        public int? CampaignId { get; init; }
+        public decimal Percentage { get; init; }
+        public DateTime StartDate { get; init; }
+        public DateTime EndDate { get; init; }
     }
 }
