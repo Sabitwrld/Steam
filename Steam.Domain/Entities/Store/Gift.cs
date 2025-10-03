@@ -1,4 +1,5 @@
-﻿using Steam.Domain.Entities.Common;
+﻿using Steam.Domain.Entities.Catalog;
+using Steam.Domain.Entities.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,11 @@ namespace Steam.Domain.Entities.Store
 {
     public class Gift : BaseEntity
     {
-        public int SenderUserId { get; set; }
-        public int ReceiverUserId { get; set; }
+        public int SenderId { get; set; }
+        public int ReceiverId { get; set; }
         public int ApplicationId { get; set; }
-        public DateTime SentDate { get; set; }
-        public bool IsRedeemed { get; set; }
+        public DateTime SentAt { get; set; }
+
+        public ApplicationCatalog Application { get; set; } = default!;
     }
 }

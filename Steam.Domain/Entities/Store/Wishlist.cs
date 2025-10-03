@@ -1,4 +1,5 @@
-﻿using Steam.Domain.Entities.Common;
+﻿using Steam.Domain.Entities.Catalog;
+using Steam.Domain.Entities.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Steam.Domain.Entities.Store
     {
         public int UserId { get; set; }
         public int ApplicationId { get; set; }
-        public DateTime AddedDate { get; set; }
+
+        public ApplicationCatalog Application { get; set; } = default!;
     }
 }
