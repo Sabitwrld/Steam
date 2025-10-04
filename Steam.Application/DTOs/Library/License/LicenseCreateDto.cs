@@ -3,7 +3,7 @@
     public record LicenseCreateDto
     {
         public int ApplicationId { get; init; }
-        public string LicenseType { get; init; } = default!;
+        public string LicenseType { get; init; } = "Lifetime";
         public DateTime? ExpirationDate { get; init; }
     }
 }

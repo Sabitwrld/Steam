@@ -16,40 +16,40 @@ namespace Steam.API.Controllers.Library
             _licenseService = licenseService;
         }
 
-        // GET: api/License
-        [HttpGet]
-        public async Task<ActionResult<PagedResponse<LicenseListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
-        {
-            var result = await _licenseService.GetAllLicensesAsync(pageNumber, pageSize);
-            return Ok(result);
-        }
-
-        // GET: api/License/5
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(LicenseReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<LicenseReturnDto>> GetById(int id)
         {
             var result = await _licenseService.GetLicenseByIdAsync(id);
             return Ok(result);
         }
 
-        // POST: api/License/{libraryId}
-        [HttpPost("{libraryId}")]
-        public async Task<ActionResult<LicenseReturnDto>> Create(int libraryId, [FromBody] LicenseCreateDto dto)
+        // This endpoint is for adding a new game to a specific library.
+        // It would typically be called internally by the OrderService after a successful purchase.
+        [HttpPost("library/{userLibraryId}")]
+        [ProducesResponseType(typeof(LicenseReturnDto), 201)]
+        [ProducesResponseType(400)]
+        public async Task<ActionResult<LicenseReturnDto>> AddLicenseToLibrary(int userLibraryId, [FromBody] LicenseCreateDto dto)
         {
-            var result = await _licenseService.CreateLicenseAsync(libraryId, dto);
+            var result = await _licenseService.AddLicenseAsync(userLibraryId, dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // PUT: api/License/5
+        // This endpoint is for updating license details, e.g., playtime or hiding the game.
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(LicenseReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<LicenseReturnDto>> Update(int id, [FromBody] LicenseUpdateDto dto)
         {
             var result = await _licenseService.UpdateLicenseAsync(id, dto);
             return Ok(result);
         }
 
-        // DELETE: api/License/5
+        // This endpoint would typically be for admin use to revoke a license.
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _licenseService.DeleteLicenseAsync(id);

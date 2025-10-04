@@ -5,7 +5,7 @@ using Steam.Application.Services.Library.Interfaces;
 
 namespace Steam.API.Controllers.Library
 {
-    [Route("api/[controller]")]
+    [Route("api/user-library")]
     [ApiController]
     public class UserLibraryController : ControllerBase
     {
@@ -16,40 +16,54 @@ namespace Steam.API.Controllers.Library
             _userLibraryService = userLibraryService;
         }
 
-        // GET: api/UserLibrary
+        [HttpGet("user/{userId}")]
+        [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<UserLibraryReturnDto>> GetByUserId(int userId)
+        {
+            var result = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
+            return Ok(result);
+        }
+
+        // This endpoint is more for admin purposes to see all libraries
         [HttpGet]
+        [ProducesResponseType(typeof(PagedResponse<UserLibraryListItemDto>), 200)]
         public async Task<ActionResult<PagedResponse<UserLibraryListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _userLibraryService.GetAllUserLibrariesAsync(pageNumber, pageSize);
             return Ok(result);
         }
 
-        // GET: api/UserLibrary/5
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<UserLibraryReturnDto>> GetById(int id)
         {
             var result = await _userLibraryService.GetUserLibraryByIdAsync(id);
             return Ok(result);
         }
 
-        // POST: api/UserLibrary
         [HttpPost]
+        [ProducesResponseType(typeof(UserLibraryReturnDto), 201)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<UserLibraryReturnDto>> Create([FromBody] UserLibraryCreateDto dto)
         {
             var result = await _userLibraryService.CreateUserLibraryAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // PUT: api/UserLibrary/5
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<UserLibraryReturnDto>> Update(int id, [FromBody] UserLibraryUpdateDto dto)
         {
             var result = await _userLibraryService.UpdateUserLibraryAsync(id, dto);
             return Ok(result);
         }
 
-        // DELETE: api/UserLibrary/5
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _userLibraryService.DeleteUserLibraryAsync(id);

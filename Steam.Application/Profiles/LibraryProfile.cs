@@ -9,18 +9,26 @@ namespace Steam.Application.Profiles
     {
         public LibraryProfile()
         {
-            // UserLibrary
+            // UserLibrary Mappings
             CreateMap<UserLibraryCreateDto, UserLibrary>();
-            CreateMap<UserLibraryUpdateDto, UserLibrary>();
+
             CreateMap<UserLibrary, UserLibraryReturnDto>();
+
             CreateMap<UserLibrary, UserLibraryListItemDto>()
                 .ForMember(dest => dest.LicenseCount, opt => opt.MapFrom(src => src.Licenses.Count));
 
-            // License
+            // License Mappings
             CreateMap<LicenseCreateDto, License>();
-            CreateMap<LicenseUpdateDto, License>();
-            CreateMap<License, LicenseReturnDto>();
-            CreateMap<License, LicenseListItemDto>();
+
+            // For updates, ignore null values so we can update specific fields.
+            CreateMap<LicenseUpdateDto, License>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<License, LicenseReturnDto>()
+                .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name));
+
+            CreateMap<License, LicenseListItemDto>()
+                .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name));
         }
     }
 }
