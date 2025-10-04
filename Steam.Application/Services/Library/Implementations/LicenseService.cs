@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Library.License;
-using Steam.Application.DTOs.Pagination;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.Library.Interfaces;
 using Steam.Domain.Entities.Library;

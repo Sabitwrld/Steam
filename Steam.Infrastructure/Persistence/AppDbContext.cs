@@ -38,7 +38,6 @@ namespace Steam.Infrastructure.Persistence
         public DbSet<License> Licenses { get; set; } = default!;
 
         public DbSet<Review> Reviews { get; set; } = default!;
-        public DbSet<Rating> Ratings { get; set; } = default!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

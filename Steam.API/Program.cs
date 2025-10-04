@@ -84,7 +84,6 @@ namespace Steam.API
             #endregion
             #region Reviews & Rating Repositories
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-            builder.Services.AddScoped<IRatingRepository, RatingRepository>();
             #endregion
             #region Achievements Repositories
             builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
@@ -126,7 +125,6 @@ namespace Steam.API
             #endregion
             #region Reviews & Rating Services
             builder.Services.AddScoped<IReviewService, ReviewService>();
-            builder.Services.AddScoped<IRatingService, RatingService>();
             #endregion
             #region Achievements Services
             builder.Services.AddScoped<IAchievementService, AchievementService>();

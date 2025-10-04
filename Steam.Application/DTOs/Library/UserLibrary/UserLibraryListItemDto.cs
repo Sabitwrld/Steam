@@ -1,4 +1,4 @@
-﻿    namespace Steam.Application.DTOs.Library.UserLibrary
+﻿namespace Steam.Application.DTOs.Library.UserLibrary
 {
     public record UserLibraryListItemDto
     {

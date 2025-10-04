@@ -7,11 +7,6 @@ using Steam.Application.Services.Orders.Interfaces;
 using Steam.Domain.Entities.Orders;
 using Steam.Domain.Entities.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.Orders.Implementations
 {

@@ -2,8 +2,10 @@
 {
     public record ReviewCreateDto
     {
-        public int UserId { get; init; }
+        public string UserId { get; init; } = default!;
         public int ApplicationId { get; init; }
+        public string Title { get; init; } = string.Empty;
         public string Content { get; init; } = string.Empty;
+        public bool IsRecommended { get; init; }
     }
 }

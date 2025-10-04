@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Library.License;
-using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Library.Interfaces;
 
 namespace Steam.API.Controllers.Library
