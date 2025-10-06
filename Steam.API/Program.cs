@@ -162,7 +162,10 @@ namespace Steam.API
             {
                 cfg.AddMaps(typeof(AchievementsMappingProfile).Assembly);
             });
-
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(AuthProfile).Assembly);
+            });
 
             #endregion
 

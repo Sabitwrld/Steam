@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Steam.Application.DTOs.Auth;
+using Steam.Application.Exceptions;
 using Steam.Application.Services.Auth.Interfaces;
 using Steam.Domain.Entities.Identity;
 
@@ -10,40 +11,41 @@ namespace Steam.Application.Services.Auth.Implementations
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
-        private readonly IMapper _mapper;
-        private readonly ITokenService _tokenService; // JWT yaratmaq üçün
+        private readonly ITokenService _tokenService;
 
-        public AuthService(UserManager<AppUser> userManager,
-                           SignInManager<AppUser> signInManager,
-                           IMapper mapper,
-                           ITokenService tokenService)
+        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _mapper = mapper;
             _tokenService = tokenService;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            var user = new AppUser
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingUser != null)
             {
-                FullName = dto.FullName,
-                UserName = dto.Email,
-                Email = dto.Email
-            };
+                throw new Exception("User with this email already exists.");
+            }
 
+            var user = new AppUser { FullName = dto.FullName, UserName = dto.Email, Email = dto.Email, CreatedAt = DateTime.UtcNow };
             var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (!result.Succeeded)
-                throw new Exception(string.Join(", ", result.Errors));
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            var token = _tokenService.GenerateToken(user);
+            // Automatically assign the "User" role to every new registration
+            await _userManager.AddToRoleAsync(user, "User");
+
+            var token = await _tokenService.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
 
             return new AuthResponseDto
             {
                 Token = token,
-                Expiration = DateTime.UtcNow.AddHours(1)
+                Expiration = DateTime.UtcNow.AddHours(1),
+                FullName = user.FullName,
+                Roles = roles.ToList()
             };
         }
 
@@ -51,37 +53,40 @@ namespace Steam.Application.Services.Auth.Implementations
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
-                throw new Exception("User not found");
+                throw new NotFoundException("Invalid email or password.");
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
             if (!result.Succeeded)
                 throw new Exception("Invalid credentials");
 
-            var token = _tokenService.GenerateToken(user);
+            var token = await _tokenService.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
 
             return new AuthResponseDto
             {
                 Token = token,
-                Expiration = DateTime.UtcNow.AddHours(1)
+                Expiration = DateTime.UtcNow.AddHours(1),
+                FullName = user.FullName,
+                Roles = roles.ToList()
             };
         }
 
         public async Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null)
-                return false;
+            if (user == null) return false;
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // tokeni email ilə göndərmək burda qalır (sən email service əlavə etməlisən)
+            // TODO: Implement an EmailService to send the token to the user's email.
+            // await _emailService.SendPasswordResetEmailAsync(user.Email, token);
+
             return true;
         }
 
         public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null)
-                return false;
+            if (user == null) return false;
 
             var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
             return result.Succeeded;
