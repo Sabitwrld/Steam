@@ -17,6 +17,7 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(PagedResponse<BadgeListItemDto>), 200)]
         public async Task<ActionResult<PagedResponse<BadgeListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetAllBadgesAsync(pageNumber, pageSize);
@@ -24,6 +25,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BadgeReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<BadgeReturnDto>> GetById(int id)
         {
             var result = await _service.GetBadgeByIdAsync(id);
@@ -31,6 +34,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(BadgeReturnDto), 201)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<BadgeReturnDto>> Create([FromBody] BadgeCreateDto dto)
         {
             var result = await _service.CreateBadgeAsync(dto);
@@ -38,6 +43,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(BadgeReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<BadgeReturnDto>> Update(int id, [FromBody] BadgeUpdateDto dto)
         {
             var result = await _service.UpdateBadgeAsync(id, dto);
@@ -45,6 +52,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteBadgeAsync(id);

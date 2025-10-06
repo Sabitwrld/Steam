@@ -16,40 +16,44 @@ namespace Steam.API.Controllers.Achievements
             _service = service;
         }
 
-        // GET: api/Achievement
         [HttpGet]
+        [ProducesResponseType(typeof(PagedResponse<AchievementListItemDto>), 200)]
         public async Task<ActionResult<PagedResponse<AchievementListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetAllAchievementsAsync(pageNumber, pageSize);
             return Ok(result);
         }
 
-        // GET: api/Achievement/5
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(AchievementReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<AchievementReturnDto>> GetById(int id)
         {
             var result = await _service.GetAchievementByIdAsync(id);
             return Ok(result);
         }
 
-        // POST: api/Achievement
         [HttpPost]
+        [ProducesResponseType(typeof(AchievementReturnDto), 201)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<AchievementReturnDto>> Create([FromBody] AchievementCreateDto dto)
         {
             var result = await _service.CreateAchievementAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // PUT: api/Achievement/5
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(AchievementReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<AchievementReturnDto>> Update(int id, [FromBody] AchievementUpdateDto dto)
         {
             var result = await _service.UpdateAchievementAsync(id, dto);
             return Ok(result);
         }
 
-        // DELETE: api/Achievement/5
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteAchievementAsync(id);

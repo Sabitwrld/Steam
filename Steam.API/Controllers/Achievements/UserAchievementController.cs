@@ -5,7 +5,7 @@ using Steam.Application.Services.Achievements.Interfaces;
 
 namespace Steam.API.Controllers.Achievements
 {
-    [Route("api/[controller]")]
+    [Route("api/user-achievements")]
     [ApiController]
     public class UserAchievementController : ControllerBase
     {
@@ -16,40 +16,39 @@ namespace Steam.API.Controllers.Achievements
             _service = service;
         }
 
-        // GET: api/UserAchievement
-        [HttpGet]
-        public async Task<ActionResult<PagedResponse<UserAchievementListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        // Unlocks an achievement for a user
+        [HttpPost("unlock")]
+        [ProducesResponseType(typeof(UserAchievementReturnDto), 200)]
+        [ProducesResponseType(400)]
+        public async Task<ActionResult<UserAchievementReturnDto>> UnlockAchievement([FromBody] UserAchievementCreateDto dto)
         {
-            var result = await _service.GetAllUserAchievementsAsync(pageNumber, pageSize);
+            var result = await _service.UnlockAchievementAsync(dto);
             return Ok(result);
         }
 
-        // GET: api/UserAchievement/5
+        // Gets all achievements for a specific user
+        [HttpGet("user/{userId}")]
+        [ProducesResponseType(typeof(PagedResponse<UserAchievementListItemDto>), 200)]
+        public async Task<ActionResult<PagedResponse<UserAchievementListItemDto>>> GetAchievementsForUser(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _service.GetAchievementsForUserAsync(userId, pageNumber, pageSize);
+            return Ok(result);
+        }
+
+        // Gets a specific unlocked achievement record by its own ID
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(UserAchievementReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<UserAchievementReturnDto>> GetById(int id)
         {
             var result = await _service.GetUserAchievementByIdAsync(id);
             return Ok(result);
         }
 
-        // POST: api/UserAchievement
-        [HttpPost]
-        public async Task<ActionResult<UserAchievementReturnDto>> Create([FromBody] UserAchievementCreateDto dto)
-        {
-            var result = await _service.CreateUserAchievementAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-
-        // PUT: api/UserAchievement/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<UserAchievementReturnDto>> Update(int id, [FromBody] UserAchievementUpdateDto dto)
-        {
-            var result = await _service.UpdateUserAchievementAsync(id, dto);
-            return Ok(result);
-        }
-
-        // DELETE: api/UserAchievement/5
+        // Deletes an unlocked achievement record (for admin/testing purposes)
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteUserAchievementAsync(id);

@@ -5,7 +5,7 @@ using Steam.Application.Services.Achievements.Interfaces;
 
 namespace Steam.API.Controllers.Achievements
 {
-    [Route("api/[controller]")]
+    [Route("api/crafting-recipes")]
     [ApiController]
     public class CraftingRecipeController : ControllerBase
     {
@@ -17,6 +17,7 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(PagedResponse<CraftingRecipeListItemDto>), 200)]
         public async Task<ActionResult<PagedResponse<CraftingRecipeListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetAllCraftingRecipesAsync(pageNumber, pageSize);
@@ -24,6 +25,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(CraftingRecipeReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<CraftingRecipeReturnDto>> GetById(int id)
         {
             var result = await _service.GetCraftingRecipeByIdAsync(id);
@@ -31,6 +34,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(CraftingRecipeReturnDto), 201)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<CraftingRecipeReturnDto>> Create([FromBody] CraftingRecipeCreateDto dto)
         {
             var result = await _service.CreateCraftingRecipeAsync(dto);
@@ -38,6 +43,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(CraftingRecipeReturnDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<CraftingRecipeReturnDto>> Update(int id, [FromBody] CraftingRecipeUpdateDto dto)
         {
             var result = await _service.UpdateCraftingRecipeAsync(id, dto);
@@ -45,6 +52,8 @@ namespace Steam.API.Controllers.Achievements
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteCraftingRecipeAsync(id);

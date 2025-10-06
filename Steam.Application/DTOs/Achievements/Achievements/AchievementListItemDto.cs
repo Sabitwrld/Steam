@@ -1,9 +1,0 @@
-﻿namespace Steam.Application.DTOs.Achievements.Achievements
-{
-    public record AchievementListItemDto
-    {
-        public int Id { get; init; }
-        public string Name { get; init; }
-        public int Points { get; init; }
-    }
-}

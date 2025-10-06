@@ -16,42 +16,31 @@ namespace Steam.API.Controllers.Achievements
             _service = service;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<PagedResponse<LeaderboardListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        // Gets the leaderboard for a specific application
+        [HttpGet("application/{applicationId}")]
+        [ProducesResponseType(typeof(PagedResponse<LeaderboardListItemDto>), 200)]
+        public async Task<ActionResult<PagedResponse<LeaderboardListItemDto>>> GetLeaderboard(int applicationId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 25)
         {
-            var result = await _service.GetAllLeaderboardsAsync(pageNumber, pageSize);
+            var result = await _service.GetLeaderboardForApplicationAsync(applicationId, pageNumber, pageSize);
             return Ok(result);
         }
 
+        // Adds or updates a user's score on a leaderboard
+        [HttpPost("score")]
+        [ProducesResponseType(typeof(LeaderboardReturnDto), 200)]
+        [ProducesResponseType(400)]
+        public async Task<ActionResult<LeaderboardReturnDto>> AddOrUpdateScore([FromBody] LeaderboardCreateDto dto)
+        {
+            var result = await _service.AddOrUpdateScoreAsync(dto);
+            return Ok(result);
+        }
+
+        // Other standard CRUD endpoints for admin use
         [HttpGet("{id}")]
         public async Task<ActionResult<LeaderboardReturnDto>> GetById(int id)
         {
-            var result = await _service.GetLeaderboardByIdAsync(id);
+            var result = await _service.GetScoreByIdAsync(id);
             return Ok(result);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<LeaderboardReturnDto>> Create([FromBody] LeaderboardCreateDto dto)
-        {
-            var result = await _service.CreateLeaderboardAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<LeaderboardReturnDto>> Update(int id, [FromBody] LeaderboardUpdateDto dto)
-        {
-            var result = await _service.UpdateLeaderboardAsync(id, dto);
-            return Ok(result);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var deleted = await _service.DeleteLeaderboardAsync(id);
-            if (!deleted)
-                return NotFound();
-
-            return NoContent();
         }
     }
 }
