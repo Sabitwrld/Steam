@@ -6,11 +6,6 @@ using Steam.Application.DTOs.Pagination;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.Auth.Interfaces;
 using Steam.Domain.Entities.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Services.Auth.Implementations
 {

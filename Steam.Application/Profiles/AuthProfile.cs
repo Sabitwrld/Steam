@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using Steam.Application.DTOs.Auth;
 using Steam.Domain.Entities.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Application.Profiles
 {

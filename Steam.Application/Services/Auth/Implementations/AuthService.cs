@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Steam.Application.DTOs.Auth;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.Auth.Interfaces;

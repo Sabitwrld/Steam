@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Steam.Application.DTOs.Library.UserLibrary;
 
-namespace Steam.Application.Validators.Library.UserLIbrary
+namespace Steam.Application.Validators.Library.UserLibrary
 {
     public class UserLibraryCreateValidator : AbstractValidator<UserLibraryCreateDto>
     {

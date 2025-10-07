@@ -1,7 +1,9 @@
 ﻿
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Steam.API.Middlewares;
 using Steam.Application.Profiles;
 using Steam.Application.Services;
@@ -36,12 +38,13 @@ using Steam.Infrastructure.Repositories.Interfaces.Orders;
 using Steam.Infrastructure.Repositories.Interfaces.ReviewsRating;
 using Steam.Infrastructure.Repositories.Interfaces.Store;
 using System.Reflection;
+using System.Text;
 
 namespace Steam.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -133,6 +136,11 @@ namespace Steam.API
             builder.Services.AddScoped<IUserAchievementService, UserAchievementService>();
             builder.Services.AddScoped<IBadgeService, BadgeService>();
             #endregion
+            #region Auth Services
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            #endregion
             #endregion
 
             #region Register AutoMapper
@@ -140,39 +148,10 @@ namespace Steam.API
             {
                 cfg.AddMaps(typeof(CatalogMappingProfile).Assembly);
             });
-
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(typeof(StoreProfile).Assembly);
-            });
-
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(typeof(OrdersProfile).Assembly);
-            });
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(typeof(LibraryProfile).Assembly);
-            });
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(typeof(ReviewRatingProfile).Assembly);
-            });
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(typeof(AchievementsMappingProfile).Assembly);
-            });
-            builder.Services.AddAutoMapper(cfg =>
-            {
-                cfg.AddMaps(typeof(AuthProfile).Assembly);
-            });
-
             #endregion
 
-            builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<IAuthService, AuthService>();
 
-
+            // --- IDENTITY CONFIGURATION ---
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -180,38 +159,62 @@ namespace Steam.API
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = true;
             })
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders(); ;
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
 
+
+            // --- JWT AUTHENTICATION CONFIGURATION ---
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["AuthSettings:JwtIssuer"],
+                    ValidAudience = builder.Configuration["AuthSettings:JwtAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AuthSettings:JwtKey"]))
+                };
+            });
 
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.AllowAnyOrigin()   // test üçün
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
+                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                 });
             });
 
-
             builder.Services.AddControllers()
-            .AddFluentValidation(options =>
-            {
-                options.RegisterValidatorsFromAssembly(Assembly.Load("Steam.Application"));
-            });
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                .AddFluentValidation(options =>
+                {
+                    options.RegisterValidatorsFromAssembly(Assembly.Load("Steam.Application"));
+                });
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
+            // --- DATA SEEDER EXECUTION ---
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var userManager = services.GetRequiredService<UserManager<AppUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var configuration = services.GetRequiredService<IConfiguration>();
+                await DataSeeder.SeedRolesAndAdminAsync(userManager, roleManager, configuration);
+            }
+
             app.UseMiddleware<ExceptionMiddleware>();
-
-            // Configure the HTTP request pipeline.
             app.UseStaticFiles();
-
             app.UseCors();
 
             app.UseSwagger();
@@ -225,7 +228,7 @@ namespace Steam.API
 
             app.MapControllers();
 
-            app.Run();
+            app.RunAsync();
         }
     }
 }
