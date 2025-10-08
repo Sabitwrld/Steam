@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Gift;
 using Steam.Application.Exceptions;
+using Steam.Application.Services.Library.Interfaces;
 using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
@@ -12,12 +13,16 @@ namespace Steam.Application.Services.Store.Implementations
     public class GiftService : IGiftService
     {
         private readonly IRepository<Gift> _repository;
+        private readonly IUserLibraryService _userLibraryService; // ADD THIS
+        private readonly ILicenseService _licenseService;         // ADD THIS
         private readonly IMapper _mapper;
 
-        public GiftService(IRepository<Gift> repository, IMapper mapper)
+        public GiftService(IRepository<Gift> repository, IMapper mapper, IUserLibraryService userLibraryService, ILicenseService licenseService)
         {
             _repository = repository;
             _mapper = mapper;
+            _userLibraryService = userLibraryService;
+            _licenseService = licenseService;
         }
 
         public async Task<GiftReturnDto> SendGiftAsync(GiftCreateDto dto)
@@ -28,7 +33,7 @@ namespace Steam.Application.Services.Store.Implementations
             return _mapper.Map<GiftReturnDto>(entity);
         }
 
-        public async Task<bool> RedeemGiftAsync(int giftId, int receiverId)
+        public async Task<bool> RedeemGiftAsync(int giftId, string receiverId) // UserId is now string
         {
             var gift = await _repository.GetEntityAsync(g => g.Id == giftId && g.ReceiverId == receiverId);
             if (gift == null)
@@ -37,10 +42,18 @@ namespace Steam.Application.Services.Store.Implementations
             if (gift.IsRedeemed)
                 throw new System.Exception("This gift has already been redeemed.");
 
+            // --- INTEGRATION LOGIC: Add the gifted game to the user's library ---
+            var userLibrary = await _userLibraryService.GetUserLibraryByUserIdAsync(receiverId);
+            var licenseDto = new DTOs.Library.License.LicenseCreateDto
+            {
+                ApplicationId = gift.ApplicationId,
+                LicenseType = "Lifetime"
+            };
+            await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
+            // --- END INTEGRATION ---
+
             gift.IsRedeemed = true;
             await _repository.UpdateAsync(gift);
-
-            // TODO: Add logic here to add the game to the user's library
 
             return true;
         }
@@ -54,7 +67,7 @@ namespace Steam.Application.Services.Store.Implementations
             return _mapper.Map<GiftReturnDto>(entity);
         }
 
-        public async Task<PagedResponse<GiftListItemDto>> GetGiftsForUserAsync(int userId, int pageNumber, int pageSize)
+        public async Task<PagedResponse<GiftListItemDto>> GetGiftsForUserAsync(string userId, int pageNumber, int pageSize)
         {
             var query = _repository.GetQuery(g => g.ReceiverId == userId, asNoTracking: true);
             var totalCount = await query.CountAsync();

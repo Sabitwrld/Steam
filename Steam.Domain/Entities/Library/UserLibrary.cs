@@ -4,7 +4,7 @@ namespace Steam.Domain.Entities.Library
 {
     public class UserLibrary : BaseEntity
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public ICollection<License> Licenses { get; set; } = new List<License>();
     }
 }

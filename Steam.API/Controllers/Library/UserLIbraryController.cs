@@ -19,7 +19,7 @@ namespace Steam.API.Controllers.Library
         [HttpGet("user/{userId}")]
         [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<UserLibraryReturnDto>> GetByUserId(int userId)
+        public async Task<ActionResult<UserLibraryReturnDto>> GetByUserId(string userId)
         {
             var result = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
             return Ok(result);

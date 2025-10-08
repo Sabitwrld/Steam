@@ -29,7 +29,7 @@ namespace Steam.API.Controllers.Store
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RedeemGift(int id, [FromQuery] int receiverId)
+        public async Task<IActionResult> RedeemGift(int id, [FromQuery] string receiverId)
         {
             await _service.RedeemGiftAsync(id, receiverId);
             return Ok("Gift successfully redeemed and added to your library.");
@@ -46,7 +46,7 @@ namespace Steam.API.Controllers.Store
 
         [HttpGet("user/{userId}")]
         [ProducesResponseType(typeof(PagedResponse<GiftListItemDto>), 200)]
-        public async Task<ActionResult<PagedResponse<GiftListItemDto>>> GetGiftsForUser(int userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResponse<GiftListItemDto>>> GetGiftsForUser(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetGiftsForUserAsync(userId, pageNumber, pageSize);
             return Ok(result);

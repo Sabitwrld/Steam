@@ -9,7 +9,7 @@ namespace Steam.API.Controllers.Orders
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // This entire controller now requires a user to be logged in
+    [Authorize] // This entire controller now requires a user to be logged in.
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -19,10 +19,13 @@ namespace Steam.API.Controllers.Orders
             _cartService = cartService;
         }
 
-        // Helper to get the current user's ID from the token claims
+        // Helper method to get the current user's ID from the token claims.
         private string GetCurrentUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        [HttpGet] // Route is now just /api/cart, gets the cart of the logged-in user
+        /// <summary>
+        /// Gets the cart for the currently logged-in user.
+        /// </summary>
+        [HttpGet] // Route is now just /api/cart
         [ProducesResponseType(typeof(CartReturnDto), 200)]
         public async Task<ActionResult<CartReturnDto>> GetMyCart()
         {
@@ -31,6 +34,9 @@ namespace Steam.API.Controllers.Orders
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Adds an item to the logged-in user's cart.
+        /// </summary>
         [HttpPost("items")]
         [ProducesResponseType(typeof(CartReturnDto), 200)]
         public async Task<ActionResult<CartReturnDto>> AddItemToMyCart([FromBody] CartItemCreateDto dto)
@@ -40,6 +46,9 @@ namespace Steam.API.Controllers.Orders
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Updates the quantity of an item in the logged-in user's cart.
+        /// </summary>
         [HttpPut("items/{cartItemId}")]
         [ProducesResponseType(typeof(CartReturnDto), 200)]
         public async Task<ActionResult<CartReturnDto>> UpdateItemQuantityInMyCart(int cartItemId, [FromBody] CartItemUpdateDto dto)
@@ -49,6 +58,9 @@ namespace Steam.API.Controllers.Orders
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Removes an item from the logged-in user's cart.
+        /// </summary>
         [HttpDelete("items/{cartItemId}")]
         [ProducesResponseType(204)]
         public async Task<IActionResult> RemoveItemFromMyCart(int cartItemId)
@@ -58,6 +70,9 @@ namespace Steam.API.Controllers.Orders
             return NoContent();
         }
 
+        /// <summary>
+        /// Clears all items from the logged-in user's cart.
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(204)]
         public async Task<IActionResult> ClearMyCart()

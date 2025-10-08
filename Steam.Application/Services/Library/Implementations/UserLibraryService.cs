@@ -57,13 +57,15 @@ namespace Steam.Application.Services.Library.Implementations
 
         // --- EXISTING METHODS (WITH CORRECTIONS) ---
 
-        public async Task<UserLibraryReturnDto> GetUserLibraryByUserIdAsync(int userId)
+        // --- FIX: This method now correctly accepts a string UserId ---
+        public async Task<UserLibraryReturnDto> GetUserLibraryByUserIdAsync(string userId)
         {
+            // First, ensure the UserLibrary entity also uses string for UserId
             var library = await _repository.GetEntityAsync(
                 predicate: ul => ul.UserId == userId,
                 includes: new[] {
-                    (Func<IQueryable<UserLibrary>, IQueryable<UserLibrary>>)(q => q.Include(ul => ul.Licenses)
-                                                                                  .ThenInclude(l => l.Application))
+                    (System.Func<IQueryable<UserLibrary>, IQueryable<UserLibrary>>)(q => q.Include(ul => ul.Licenses)
+                                                                                         .ThenInclude(l => l.Application))
                 }
             );
 

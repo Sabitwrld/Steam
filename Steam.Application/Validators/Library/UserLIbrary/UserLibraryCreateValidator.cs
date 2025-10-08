@@ -8,8 +8,7 @@ namespace Steam.Application.Validators.Library.UserLibrary
         public UserLibraryCreateValidator()
         {
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId is required.")
-                .GreaterThan(0).WithMessage("A valid UserId must be provided.");
+                .NotEmpty().WithMessage("UserId is required.");
         }
     }
 }

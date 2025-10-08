@@ -13,9 +13,20 @@ namespace Steam.Infrastructure.Configurations.Store
 
             builder.HasOne(g => g.Application)
                    .WithMany()
-                   .HasForeignKey(g => g.ApplicationId);
+                   .HasForeignKey(g => g.ApplicationId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            // Note: Relationships for SenderId and ReceiverId to AppUser are configured by Identity implicitly
+            // ✅ Sender relationship
+            builder.HasOne(g => g.Sender)
+                   .WithMany()
+                   .HasForeignKey(g => g.SenderId)
+                   .OnDelete(DeleteBehavior.Restrict); // Important: prevent multiple cascade paths
+
+            // ✅ Receiver relationship
+            builder.HasOne(g => g.Receiver)
+                   .WithMany()
+                   .HasForeignKey(g => g.ReceiverId)
+                   .OnDelete(DeleteBehavior.Cascade); // This one can stay Cascade
 
             builder.HasQueryFilter(g => !g.IsDeleted);
         }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Voucher;
 using Steam.Application.Exceptions;
+using Steam.Application.Services.Library.Interfaces;
 using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
@@ -12,12 +13,16 @@ namespace Steam.Application.Services.Store.Implementations
     public class VoucherService : IVoucherService
     {
         private readonly IRepository<Voucher> _repository;
+        private readonly IUserLibraryService _userLibraryService; // ADD THIS
+        private readonly ILicenseService _licenseService;         // ADD THIS
         private readonly IMapper _mapper;
 
-        public VoucherService(IRepository<Voucher> repository, IMapper mapper)
+        public VoucherService(IRepository<Voucher> repository, IMapper mapper, IUserLibraryService userLibraryService, ILicenseService licenseService)
         {
             _repository = repository;
             _mapper = mapper;
+            _userLibraryService = userLibraryService;
+            _licenseService = licenseService;
         }
 
         public async Task<VoucherReturnDto> CreateVoucherAsync(VoucherCreateDto dto)
@@ -27,7 +32,7 @@ namespace Steam.Application.Services.Store.Implementations
             return _mapper.Map<VoucherReturnDto>(entity);
         }
 
-        public async Task<VoucherReturnDto> RedeemVoucherAsync(string code, int userId)
+        public async Task<VoucherReturnDto> RedeemVoucherAsync(string code, string userId) // UserId is now string
         {
             var voucher = await _repository.GetEntityAsync(v => v.Code == code);
 
@@ -40,10 +45,18 @@ namespace Steam.Application.Services.Store.Implementations
             if (voucher.ExpirationDate < DateTime.UtcNow)
                 throw new Exception("This voucher has expired.");
 
+            // --- INTEGRATION LOGIC: Add the game to the user's library ---
+            var userLibrary = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
+            var licenseDto = new DTOs.Library.License.LicenseCreateDto
+            {
+                ApplicationId = voucher.ApplicationId,
+                LicenseType = "Lifetime"
+            };
+            await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
+            // --- END INTEGRATION ---
+
             voucher.IsUsed = true;
             await _repository.UpdateAsync(voucher);
-
-            // TODO: Add logic here to add the game (voucher.ApplicationId) to the user's (userId) library
 
             return _mapper.Map<VoucherReturnDto>(voucher);
         }

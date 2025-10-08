@@ -2,6 +2,6 @@
 {
     public record UserLibraryCreateDto
     {
-        public int UserId { get; init; }
+        public string UserId { get; init; }
     }
 }

@@ -32,7 +32,7 @@ namespace Steam.API.Controllers.Store
         [ProducesResponseType(typeof(VoucherReturnDto), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public async Task<ActionResult<VoucherReturnDto>> RedeemVoucher([FromQuery] string code, [FromQuery] int userId)
+        public async Task<ActionResult<VoucherReturnDto>> RedeemVoucher([FromQuery] string code, [FromQuery] string userId)
         {
             var result = await _service.RedeemVoucherAsync(code, userId);
             return Ok(result);

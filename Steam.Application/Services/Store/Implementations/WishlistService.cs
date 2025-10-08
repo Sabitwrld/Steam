@@ -81,5 +81,13 @@ namespace Steam.Application.Services.Store.Implementations
                 TotalCount = totalCount
             };
         }
+        public async Task<bool> DeleteWishlistByAppIdAsync(string userId, int applicationId)
+        {
+            var entity = await _repository.GetEntityAsync(w => w.UserId == userId && w.ApplicationId == applicationId);
+            if (entity == null)
+                return false;
+
+            return await _repository.DeleteAsync(entity);
+        }
     }
 }

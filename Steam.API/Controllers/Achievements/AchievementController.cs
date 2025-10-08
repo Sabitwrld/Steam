@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Achievements.Achievements;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Achievements.Interfaces;
@@ -36,6 +37,7 @@ namespace Steam.API.Controllers.Achievements
         [HttpPost]
         [ProducesResponseType(typeof(AchievementReturnDto), 201)]
         [ProducesResponseType(400)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AchievementReturnDto>> Create([FromBody] AchievementCreateDto dto)
         {
             var result = await _service.CreateAchievementAsync(dto);
@@ -45,6 +47,7 @@ namespace Steam.API.Controllers.Achievements
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(AchievementReturnDto), 200)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AchievementReturnDto>> Update(int id, [FromBody] AchievementUpdateDto dto)
         {
             var result = await _service.UpdateAchievementAsync(id, dto);
@@ -54,6 +57,7 @@ namespace Steam.API.Controllers.Achievements
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteAchievementAsync(id);

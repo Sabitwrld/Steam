@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Achievements.Badge;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Achievements.Interfaces;
@@ -36,6 +37,7 @@ namespace Steam.API.Controllers.Achievements
         [HttpPost]
         [ProducesResponseType(typeof(BadgeReturnDto), 201)]
         [ProducesResponseType(400)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BadgeReturnDto>> Create([FromBody] BadgeCreateDto dto)
         {
             var result = await _service.CreateBadgeAsync(dto);
@@ -45,6 +47,7 @@ namespace Steam.API.Controllers.Achievements
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(BadgeReturnDto), 200)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BadgeReturnDto>> Update(int id, [FromBody] BadgeUpdateDto dto)
         {
             var result = await _service.UpdateBadgeAsync(id, dto);
@@ -54,6 +57,7 @@ namespace Steam.API.Controllers.Achievements
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteBadgeAsync(id);
