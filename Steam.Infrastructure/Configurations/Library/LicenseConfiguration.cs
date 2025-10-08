@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Steam.Domain.Entities.Library;
 
-namespace Steam.Infrastructure.Configurations.UserLIbrary
+namespace Steam.Infrastructure.Configurations.Library
 {
     public class LicenseConfiguration : IEntityTypeConfiguration<License>
     {

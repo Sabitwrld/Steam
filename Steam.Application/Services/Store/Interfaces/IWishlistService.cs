@@ -9,5 +9,6 @@ namespace Steam.Application.Services.Store.Interfaces
         Task<bool> DeleteWishlistAsync(int id);
         Task<WishlistReturnDto> GetWishlistByIdAsync(int id);
         Task<PagedResponse<WishlistListItemDto>> GetAllWishlistsAsync(int pageNumber, int pageSize);
+        Task<PagedResponse<WishlistListItemDto>> GetWishlistByUserIdAsync(string userId, int pageNumber, int pageSize); // CHANGED: from int to string
     }
 }

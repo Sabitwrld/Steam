@@ -3,7 +3,7 @@
     public record CartListItemDto
     {
         public int Id { get; init; }
-        public int UserId { get; init; }
+        public string UserId { get; init; } = default!; // CHANGED
         public int ItemCount { get; init; }
     }
 }

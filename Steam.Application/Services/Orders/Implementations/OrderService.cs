@@ -22,7 +22,7 @@ namespace Steam.Application.Services.Orders.Implementations
             _mapper = mapper;
         }
 
-        public async Task<OrderReturnDto> CreateOrderFromCartAsync(int userId)
+        public async Task<OrderReturnDto> CreateOrderFromCartAsync(string userId)
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
             if (cart.Items == null || !cart.Items.Any())
@@ -35,14 +35,14 @@ namespace Steam.Application.Services.Orders.Implementations
                 UserId = userId,
                 OrderDate = DateTime.UtcNow,
                 TotalPrice = cart.TotalPrice,
-                Status = "Pending" // Initial status
+                Status = "Pending"
             };
 
             order.Items = cart.Items.Select(cartItem => new OrderItem
             {
                 ApplicationId = cartItem.ApplicationId,
                 Quantity = cartItem.Quantity,
-                Price = cartItem.Price // Price is taken from the calculated cart price
+                Price = cartItem.Price
             }).ToList();
 
             await _orderRepo.CreateAsync(order);
@@ -67,9 +67,12 @@ namespace Steam.Application.Services.Orders.Implementations
             return _mapper.Map<OrderReturnDto>(order);
         }
 
-        public async Task<PagedResponse<OrderListItemDto>> GetOrdersForUserAsync(int userId, int pageNumber, int pageSize)
+        // FIXED: Renamed this method from GetOrdersForUserAsync to GetOrdersByUserIdAsync
+        public async Task<PagedResponse<OrderListItemDto>> GetOrdersByUserIdAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _orderRepo.GetQuery(o => o.UserId == userId, asNoTracking: true);
+            var query = _orderRepo.GetQuery(o => o.UserId == userId, asNoTracking: true)
+                                   .Include(o => o.Items); // Include items to get the count
+
             var totalCount = await query.CountAsync();
             var items = await query.OrderByDescending(o => o.OrderDate)
                                      .Skip((pageNumber - 1) * pageSize)
@@ -91,7 +94,6 @@ namespace Steam.Application.Services.Orders.Implementations
             if (order == null)
                 throw new NotFoundException(nameof(Order), orderId);
 
-            // Here you can add more logic to check for valid status transitions
             order.Status = status;
             await _orderRepo.UpdateAsync(order);
             return _mapper.Map<OrderReturnDto>(order);

@@ -36,9 +36,10 @@ namespace Steam.API.Controllers.Orders
 
         [HttpGet("user/{userId}")]
         [ProducesResponseType(typeof(PagedResponse<OrderListItemDto>), 200)]
-        public async Task<ActionResult<PagedResponse<OrderListItemDto>>> GetOrdersForUser(int userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResponse<OrderListItemDto>>> GetOrdersForUser(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) // FIXED: int -> string
         {
-            var orders = await _orderService.GetOrdersForUserAsync(userId, pageNumber, pageSize);
+            // FIXED: Method name changed from GetOrdersForUserAsync to GetOrdersByUserIdAsync
+            var orders = await _orderService.GetOrdersByUserIdAsync(userId, pageNumber, pageSize);
             return Ok(orders);
         }
 

@@ -5,10 +5,10 @@ namespace Steam.Application.Services.Orders.Interfaces
 {
     public interface ICartService
     {
-        Task<CartReturnDto> GetCartByUserIdAsync(int userId);
-        Task<CartReturnDto> AddItemToCartAsync(int userId, CartItemCreateDto dto);
-        Task<CartReturnDto> UpdateItemQuantityAsync(int userId, int cartItemId, int quantity);
-        Task<bool> RemoveItemFromCartAsync(int userId, int cartItemId);
-        Task<bool> ClearCartAsync(int userId);
+        Task<CartReturnDto> GetCartByUserIdAsync(string userId);
+        Task<CartReturnDto> AddItemToCartAsync(string userId, CartItemCreateDto dto);
+        Task<CartReturnDto> UpdateItemQuantityAsync(string userId, int cartItemId, int quantity);
+        Task<bool> RemoveItemFromCartAsync(string userId, int cartItemId);
+        Task<bool> ClearCartAsync(string userId);
     }
 }

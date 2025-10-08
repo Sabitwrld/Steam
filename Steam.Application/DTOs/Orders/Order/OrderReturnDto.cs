@@ -5,7 +5,7 @@ namespace Steam.Application.DTOs.Orders.Order
     public record OrderReturnDto
     {
         public int Id { get; init; }
-        public int UserId { get; init; }
+        public string UserId { get; init; } = default!; // CHANGED
         public DateTime OrderDate { get; init; }
         public decimal TotalPrice { get; init; }
         public string Status { get; init; } = string.Empty;

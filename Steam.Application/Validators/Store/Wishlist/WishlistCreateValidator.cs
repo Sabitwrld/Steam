@@ -7,8 +7,9 @@ namespace Steam.Application.Validators.Store.Wishlist
     {
         public WishlistCreateValidator()
         {
+            // FIXED: Changed validation rule for string type
             RuleFor(x => x.UserId)
-                .GreaterThan(0).WithMessage("A valid UserId is required.");
+                .NotEmpty().WithMessage("A valid UserId is required.");
 
             RuleFor(x => x.ApplicationId)
                 .GreaterThan(0).WithMessage("A valid ApplicationId is required.");

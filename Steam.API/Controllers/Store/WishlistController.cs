@@ -56,5 +56,14 @@ namespace Steam.API.Controllers.Store
             var result = await _service.GetAllWishlistsAsync(pageNumber, pageSize); // This should be improved in the service later
             return Ok(result);
         }
+
+        [HttpGet("user/{userId}")]
+        [ProducesResponseType(typeof(PagedResponse<WishlistListItemDto>), 200)]
+        public async Task<ActionResult<PagedResponse<WishlistListItemDto>>> GetUserWishlist(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            // Call the new, optimized service method
+            var result = await _service.GetWishlistByUserIdAsync(userId, pageNumber, pageSize);
+            return Ok(result);
+        }
     }
 }

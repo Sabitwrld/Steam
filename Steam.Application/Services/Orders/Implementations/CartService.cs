@@ -32,33 +32,36 @@ namespace Steam.Application.Services.Orders.Implementations
             _mapper = mapper;
         }
 
-        public async Task<CartReturnDto> GetCartByUserIdAsync(int userId)
+        public async Task<CartReturnDto> GetCartByUserIdAsync(string userId)
         {
             var cart = await GetOrCreateCartByUserId(userId);
             var cartDto = _mapper.Map<CartReturnDto>(cart);
             cartDto.TotalPrice = 0;
 
             var itemDtos = new List<CartItemReturnDto>();
-            foreach (var item in cart.Items)
+            if (cart.Items != null)
             {
-                var itemDto = _mapper.Map<CartItemReturnDto>(item);
-                itemDto.Price = await CalculateItemPrice(item.ApplicationId);
-                itemDtos.Add(itemDto);
-                cartDto.TotalPrice += itemDto.TotalPrice;
+                foreach (var item in cart.Items)
+                {
+                    var itemDto = _mapper.Map<CartItemReturnDto>(item);
+                    itemDto.Price = await CalculateItemPrice(item.ApplicationId);
+                    itemDtos.Add(itemDto);
+                    cartDto.TotalPrice += itemDto.TotalPrice;
+                }
             }
             cartDto.Items = itemDtos;
 
             return cartDto;
         }
 
-        public async Task<CartReturnDto> AddItemToCartAsync(int userId, CartItemCreateDto dto)
+        public async Task<CartReturnDto> AddItemToCartAsync(string userId, CartItemCreateDto dto)
         {
             var cart = await GetOrCreateCartByUserId(userId);
-            var existingItem = cart.Items.FirstOrDefault(i => i.ApplicationId == dto.ApplicationId);
+            var existingItem = cart.Items?.FirstOrDefault(i => i.ApplicationId == dto.ApplicationId);
 
             if (existingItem != null)
             {
-                existingItem.Quantity = dto.Quantity > 0 ? existingItem.Quantity + dto.Quantity : existingItem.Quantity + 1;
+                existingItem.Quantity += dto.Quantity > 0 ? dto.Quantity : 1;
                 await _cartItemRepo.UpdateAsync(existingItem);
             }
             else
@@ -71,10 +74,10 @@ namespace Steam.Application.Services.Orders.Implementations
             return await GetCartByUserIdAsync(userId);
         }
 
-        public async Task<CartReturnDto> UpdateItemQuantityAsync(int userId, int cartItemId, int quantity)
+        public async Task<CartReturnDto> UpdateItemQuantityAsync(string userId, int cartItemId, int quantity)
         {
             var cart = await GetOrCreateCartByUserId(userId);
-            var cartItem = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+            var cartItem = cart.Items?.FirstOrDefault(i => i.Id == cartItemId);
 
             if (cartItem == null)
                 throw new NotFoundException(nameof(CartItem), cartItemId);
@@ -92,10 +95,10 @@ namespace Steam.Application.Services.Orders.Implementations
             return await GetCartByUserIdAsync(userId);
         }
 
-        public async Task<bool> RemoveItemFromCartAsync(int userId, int cartItemId)
+        public async Task<bool> RemoveItemFromCartAsync(string userId, int cartItemId)
         {
             var cart = await GetOrCreateCartByUserId(userId);
-            var cartItem = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+            var cartItem = cart.Items?.FirstOrDefault(i => i.Id == cartItemId);
 
             if (cartItem == null)
                 throw new NotFoundException(nameof(CartItem), cartItemId);
@@ -103,23 +106,26 @@ namespace Steam.Application.Services.Orders.Implementations
             return await _cartItemRepo.DeleteAsync(cartItem);
         }
 
-        public async Task<bool> ClearCartAsync(int userId)
+        public async Task<bool> ClearCartAsync(string userId)
         {
             var cart = await GetOrCreateCartByUserId(userId);
-            if (!cart.Items.Any()) return true;
+            if (cart.Items == null || !cart.Items.Any()) return true;
 
-            _cartItemRepo.GetQuery(ci => ci.CartId == cart.Id).ToList().ForEach(async item => await _cartItemRepo.DeleteAsync(item, saveChanges: false));
+            foreach (var item in cart.Items.ToList())
+            {
+                await _cartItemRepo.DeleteAsync(item, saveChanges: false);
+            }
             await _cartItemRepo.SaveChangesAsync();
             return true;
         }
 
-        private async Task<Cart> GetOrCreateCartByUserId(int userId)
+        private async Task<Cart> GetOrCreateCartByUserId(string userId)
         {
             var cart = await _cartRepo.GetEntityAsync(
                 predicate: c => c.UserId == userId,
                 includes: new[] {
-                    (System.Func<IQueryable<Cart>, IQueryable<Cart>>)(q => q.Include(c => c.Items)
-                                                                           .ThenInclude(ci => ci.Application))
+                    (Func<IQueryable<Cart>, IQueryable<Cart>>)(q => q.Include(c => c.Items)
+                                                                     .ThenInclude(ci => ci.Application))
                 }
             );
 
@@ -145,7 +151,8 @@ namespace Steam.Application.Services.Orders.Implementations
 
             if (activeDiscount != null)
             {
-                price = price * (1 - (activeDiscount.Percent / 100));
+                // FIXED: Changed 'Percentage' to 'Percent' to match the entity property name.
+                price *= (1 - (activeDiscount.Percent / 100));
             }
 
             return price;

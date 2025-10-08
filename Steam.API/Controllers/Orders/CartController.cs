@@ -19,7 +19,7 @@ namespace Steam.API.Controllers.Orders
         [HttpGet("user/{userId}")]
         [ProducesResponseType(typeof(CartReturnDto), 200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<CartReturnDto>> GetCart(int userId)
+        public async Task<ActionResult<CartReturnDto>> GetCart(string userId) // FIXED
         {
             var cart = await _cartService.GetCartByUserIdAsync(userId);
             return Ok(cart);
@@ -28,7 +28,7 @@ namespace Steam.API.Controllers.Orders
         [HttpPost("user/{userId}/items")]
         [ProducesResponseType(typeof(CartReturnDto), 200)]
         [ProducesResponseType(400)]
-        public async Task<ActionResult<CartReturnDto>> AddItem(int userId, [FromBody] CartItemCreateDto dto)
+        public async Task<ActionResult<CartReturnDto>> AddItem(string userId, [FromBody] CartItemCreateDto dto) // FIXED
         {
             var cart = await _cartService.AddItemToCartAsync(userId, dto);
             return Ok(cart);
@@ -37,7 +37,7 @@ namespace Steam.API.Controllers.Orders
         [HttpPut("user/{userId}/items/{cartItemId}")]
         [ProducesResponseType(typeof(CartReturnDto), 200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<CartReturnDto>> UpdateItemQuantity(int userId, int cartItemId, [FromBody] CartItemUpdateDto dto)
+        public async Task<ActionResult<CartReturnDto>> UpdateItemQuantity(string userId, int cartItemId, [FromBody] CartItemUpdateDto dto) // FIXED
         {
             var cart = await _cartService.UpdateItemQuantityAsync(userId, cartItemId, dto.Quantity);
             return Ok(cart);
@@ -46,7 +46,7 @@ namespace Steam.API.Controllers.Orders
         [HttpDelete("user/{userId}/items/{cartItemId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> RemoveItem(int userId, int cartItemId)
+        public async Task<IActionResult> RemoveItem(string userId, int cartItemId) // FIXED
         {
             await _cartService.RemoveItemFromCartAsync(userId, cartItemId);
             return NoContent();
@@ -54,7 +54,7 @@ namespace Steam.API.Controllers.Orders
 
         [HttpDelete("user/{userId}")]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> ClearCart(int userId)
+        public async Task<IActionResult> ClearCart(string userId) // FIXED
         {
             await _cartService.ClearCartAsync(userId);
             return NoContent();

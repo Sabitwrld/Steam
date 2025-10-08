@@ -2,6 +2,6 @@
 {
     public record OrderCreateDto
     {
-        public int UserId { get; init; }
+        public string UserId { get; init; } = default!; // CHANGED
     }
 }

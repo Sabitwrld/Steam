@@ -1,16 +1,18 @@
 ﻿using Steam.Domain.Entities.Common;
+using Steam.Domain.Entities.Identity;
 
 namespace Steam.Domain.Entities.Orders
 {
     public class Order : BaseEntity
     {
-        public int UserId { get; set; }
-        public DateTime OrderDate { get; set; } // Added for clarity
-        public decimal TotalPrice { get; set; }
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Completed, Canceled
+        public string UserId { get; set; } = default!; // CHANGED: from int to string
+        public AppUser User { get; set; } = default!; // ADDED: Navigation property to user
 
-        // Navigation Properties
+        public DateTime OrderDate { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Status { get; set; } = "Pending";
+
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
-        public Payment? Payment { get; set; } // A completed order will have one payment
+        public Payment? Payment { get; set; }
     }
 }
