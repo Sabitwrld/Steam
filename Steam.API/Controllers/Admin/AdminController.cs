@@ -29,6 +29,7 @@ namespace Steam.API.Controllers.Admin
 
         [HttpGet("users/{userId}")]
         [ProducesResponseType(typeof(UserDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<UserDto>> GetUserById(string userId)
         {
             var user = await _userService.GetUserByIdAsync(userId);
@@ -37,18 +38,22 @@ namespace Steam.API.Controllers.Admin
 
         [HttpPost("roles/assign")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
         {
             await _userService.AssignRoleAsync(dto);
-            return Ok(new { message = $"Role '{dto.RoleName}' assigned to user '{dto.UserId}'." });
+            return Ok(new { message = $"Role '{dto.RoleName}' was successfully assigned to the user." });
         }
 
         [HttpPost("roles/remove")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> RemoveRole([FromBody] AssignRoleDto dto)
         {
             await _userService.RemoveRoleAsync(dto);
-            return Ok(new { message = $"Role '{dto.RoleName}' removed from user '{dto.UserId}'." });
+            return Ok(new { message = $"Role '{dto.RoleName}' was successfully removed from the user." });
         }
     }
 }

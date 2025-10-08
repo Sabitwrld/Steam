@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Catalog.Application;
 using Steam.Application.DTOs.Catalog.Genre;
 using Steam.Application.DTOs.Catalog.Media;
@@ -40,6 +41,7 @@ namespace Steam.API.Controllers.Catalog
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")] // PROTECTED
         public async Task<ActionResult<ApplicationCatalogReturnDto>> Create([FromBody] ApplicationCatalogCreateDto dto)
         {
             var result = await _service.CreateAsync(dto);
@@ -47,6 +49,7 @@ namespace Steam.API.Controllers.Catalog
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")] // PROTECTED
         public async Task<ActionResult<ApplicationCatalogReturnDto>> Update(int id, [FromBody] ApplicationCatalogUpdateDto dto)
         {
             var result = await _service.UpdateAsync(id, dto);
@@ -54,6 +57,7 @@ namespace Steam.API.Controllers.Catalog
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")] // PROTECTED
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _service.DeleteAsync(id);

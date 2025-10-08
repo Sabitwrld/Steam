@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Coupon;
 using Steam.Application.Services.Store.Interfaces;
@@ -7,6 +8,7 @@ namespace Steam.API.Controllers.Store
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")] // BÜTÜN CONTROLLER-İ QORU
     public class CouponController : ControllerBase
     {
         private readonly ICouponService _service;

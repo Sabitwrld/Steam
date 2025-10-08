@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Catalog.Tag;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Catalog.Interfaces;
@@ -7,6 +8,7 @@ namespace Steam.API.Controllers.Catalog
 {
     [Route("api/tags")]
     [ApiController]
+    [Authorize(Roles = "Admin")] // BÜTÜN CONTROLLER-İ QORU
     public class TagController : ControllerBase
     {
         private readonly ITagService _service;
