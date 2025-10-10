@@ -3,8 +3,8 @@
     public record GiftListItemDto
     {
         public int Id { get; init; }
-        public int SenderId { get; init; }
-        public int ReceiverId { get; init; }
+        public string SenderId { get; init; }
+        public string ReceiverId { get; init; }
         public int ApplicationId { get; init; }
         public bool IsRedeemed { get; init; }
     }
