@@ -20,7 +20,6 @@ namespace Steam.Application.Services.Library.Implementations
             _mapper = mapper;
         }
 
-        // --- IMPLEMENTATION FOR MISSING METHODS ---
 
         public async Task<UserLibraryReturnDto> CreateUserLibraryAsync(UserLibraryCreateDto dto)
         {
@@ -43,7 +42,7 @@ namespace Steam.Application.Services.Library.Implementations
 
             _mapper.Map(dto, entity);
             await _repository.UpdateAsync(entity);
-            return await GetUserLibraryByIdAsync(id); // Return the full updated object
+            return await GetUserLibraryByIdAsync(id); 
         }
 
         public async Task<bool> DeleteUserLibraryAsync(int id)
@@ -54,18 +53,13 @@ namespace Steam.Application.Services.Library.Implementations
 
             return await _repository.DeleteAsync(entity);
         }
-
-        // --- EXISTING METHODS (WITH CORRECTIONS) ---
-
-        // --- FIX: This method now correctly accepts a string UserId ---
         public async Task<UserLibraryReturnDto> GetUserLibraryByUserIdAsync(string userId)
         {
-            // First, ensure the UserLibrary entity also uses string for UserId
             var library = await _repository.GetEntityAsync(
                 predicate: ul => ul.UserId == userId,
                 includes: new[] {
-                    (System.Func<IQueryable<UserLibrary>, IQueryable<UserLibrary>>)(q => q.Include(ul => ul.Licenses)
-                                                                                         .ThenInclude(l => l.Application))
+                    (Func<IQueryable<UserLibrary>, IQueryable<UserLibrary>>)(q => q.Include(ul => ul.Licenses)
+                                                                                  .ThenInclude(l => l.Application))
                 }
             );
 

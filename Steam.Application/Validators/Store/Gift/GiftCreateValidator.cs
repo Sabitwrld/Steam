@@ -7,12 +7,6 @@ namespace Steam.Application.Validators.Store.Gift
     {
         public GiftCreateValidator()
         {
-            RuleFor(x => x.SenderId)
-                .GreaterThan(0).WithMessage("A valid SenderId is required.");
-
-            RuleFor(x => x.ReceiverId)
-                .GreaterThan(0).WithMessage("A valid ReceiverId is required.");
-
             RuleFor(x => x)
                 .Must(x => x.SenderId != x.ReceiverId)
                 .WithMessage("Sender and Receiver cannot be the same person.");
