@@ -11,16 +11,17 @@ namespace Steam.Infrastructure.Configurations.Achievements
             builder.ToTable("Leaderboards");
             builder.HasKey(l => l.Id);
 
-            // A user can have only one entry per application leaderboard.
             builder.HasIndex(l => new { l.ApplicationId, l.UserId }).IsUnique();
 
             builder.HasOne(l => l.Application)
                    .WithMany()
                    .HasForeignKey(l => l.ApplicationId);
 
+            // AppUser ilə əlaqə və silmə davranışının təyin edilməsi
             builder.HasOne(l => l.User)
                    .WithMany()
-                   .HasForeignKey(l => l.UserId);
+                   .HasForeignKey(l => l.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasQueryFilter(l => !l.IsDeleted);
         }

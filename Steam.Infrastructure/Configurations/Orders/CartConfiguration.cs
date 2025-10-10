@@ -11,14 +11,17 @@ namespace Steam.Infrastructure.Configurations.Orders
             builder.ToTable("Carts");
             builder.HasKey(c => c.Id);
 
-            // A Cart has many CartItems
             builder.HasMany(c => c.Items)
                    .WithOne(ci => ci.Cart)
                    .HasForeignKey(ci => ci.CartId);
 
-            // Note: Relationship for UserId to AppUser is handled by Identity's conventions
-            // but we can add an index for performance
             builder.HasIndex(c => c.UserId).IsUnique();
+
+            // AppUser ilə əlaqə və silmə davranışının təyin edilməsi
+            builder.HasOne(c => c.User)
+                   .WithMany()
+                   .HasForeignKey(c => c.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasQueryFilter(c => !c.IsDeleted);
         }

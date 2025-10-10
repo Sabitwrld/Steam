@@ -17,7 +17,7 @@ namespace Steam.Infrastructure.Configurations.Library
                    .WithOne(l => l.UserLibrary)
                    .HasForeignKey(l => l.UserLibraryId);
 
-            // YENİ ƏLAVƏ EDİLDİ
+            // AppUser ilə əlaqə və silmə davranışının təyin edilməsi
             builder.HasOne(ul => ul.User)
                    .WithMany()
                    .HasForeignKey(ul => ul.UserId)

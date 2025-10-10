@@ -14,10 +14,15 @@ namespace Steam.Infrastructure.Configurations.Orders
             builder.Property(o => o.TotalPrice).HasColumnType("decimal(18, 2)").IsRequired();
             builder.Property(o => o.Status).IsRequired().HasMaxLength(50);
 
-            // An Order has many OrderItems
             builder.HasMany(o => o.Items)
                    .WithOne(oi => oi.Order)
                    .HasForeignKey(oi => oi.OrderId);
+
+            // AppUser ilə əlaqə və silmə davranışının təyin edilməsi
+            builder.HasOne(o => o.User)
+                   .WithMany()
+                   .HasForeignKey(o => o.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasQueryFilter(o => !o.IsDeleted);
         }

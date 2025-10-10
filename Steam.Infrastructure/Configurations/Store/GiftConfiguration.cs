@@ -16,15 +16,17 @@ namespace Steam.Infrastructure.Configurations.Store
                    .HasForeignKey(g => g.ApplicationId)
                    .OnDelete(DeleteBehavior.Restrict);
 
+            // Sender (Göndərən) əlaqəsi üçün silmə məhdudlaşdırıldı
             builder.HasOne(g => g.Sender)
                    .WithMany()
                    .HasForeignKey(g => g.SenderId)
                    .OnDelete(DeleteBehavior.Restrict);
 
+            // Receiver (Qəbul edən) əlaqəsi üçün silmə məhdudlaşdırıldı
             builder.HasOne(g => g.Receiver)
                    .WithMany()
                    .HasForeignKey(g => g.ReceiverId)
-                   .OnDelete(DeleteBehavior.Restrict); // DƏYİŞDİRİLDİ
+                   .OnDelete(DeleteBehavior.Restrict); // ƏVVƏL CASCADE İDİ, RESTRICT OLDU
 
             builder.HasQueryFilter(g => !g.IsDeleted);
         }

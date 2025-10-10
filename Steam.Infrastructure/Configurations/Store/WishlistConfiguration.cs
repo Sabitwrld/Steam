@@ -11,14 +11,17 @@ namespace Steam.Infrastructure.Configurations.Store
             builder.ToTable("Wishlists");
             builder.HasKey(w => w.Id);
 
-            // To prevent adding the same game to the wishlist multiple times for the same user
             builder.HasIndex(w => new { w.UserId, w.ApplicationId }).IsUnique();
 
             builder.HasOne(w => w.Application)
                    .WithMany()
                    .HasForeignKey(w => w.ApplicationId);
 
-            // Note: Relationship for UserId to AppUser is configured by Identity implicitly
+            // AppUser ilə əlaqə və silmə davranışının təyin edilməsi
+            builder.HasOne(w => w.User)
+                   .WithMany()
+                   .HasForeignKey(w => w.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasQueryFilter(w => !w.IsDeleted);
         }
