@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Gift;
 using Steam.Application.Services.Store.Interfaces;
+using System.Security.Claims;
 
 namespace Steam.API.Controllers.Store
 {
@@ -26,11 +28,17 @@ namespace Steam.API.Controllers.Store
         }
 
         [HttpPost("{id}/redeem")]
+        [Authorize] // Hədiyyəni qəbul etmək üçün login tələb olunur
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RedeemGift(int id, [FromQuery] string receiverId)
+        public async Task<IActionResult> RedeemGift(int id)
         {
+            var receiverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(receiverId))
+            {
+                return Unauthorized();
+            }
             await _service.RedeemGiftAsync(id, receiverId);
             return Ok("Gift successfully redeemed and added to your library.");
         }

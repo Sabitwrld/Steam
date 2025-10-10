@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Voucher;
 using Steam.Application.Services.Store.Interfaces;
+using System.Security.Claims;
 
 namespace Steam.API.Controllers.Store
 {
@@ -18,8 +19,8 @@ namespace Steam.API.Controllers.Store
             _service = service;
         }
 
-        // Note: This endpoint would typically be restricted to administrators.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(VoucherReturnDto), 201)]
         [ProducesResponseType(400)]
         public async Task<ActionResult<VoucherReturnDto>> CreateVoucher([FromBody] VoucherCreateDto dto)
@@ -28,17 +29,26 @@ namespace Steam.API.Controllers.Store
             return CreatedAtAction(nameof(GetVoucherById), new { id = result.Id }, result);
         }
 
+        // Bu endpoint adi istifadəçilər üçün olmalıdır, ona görə də Admin rolundan çıxarılır
         [HttpPost("redeem")]
+        [Authorize] // Yalnız login olmuş istifadəçilər üçün
         [ProducesResponseType(typeof(VoucherReturnDto), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public async Task<ActionResult<VoucherReturnDto>> RedeemVoucher([FromQuery] string code, [FromQuery] string userId)
+        public async Task<ActionResult<VoucherReturnDto>> RedeemVoucher([FromQuery] string code)
         {
+            // UserId birbaşa token-dən götürülür, client-dən deyil.
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
             var result = await _service.RedeemVoucherAsync(code, userId);
             return Ok(result);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(VoucherReturnDto), 200)]
         [ProducesResponseType(404)]
         public async Task<ActionResult<VoucherReturnDto>> GetVoucherById(int id)
