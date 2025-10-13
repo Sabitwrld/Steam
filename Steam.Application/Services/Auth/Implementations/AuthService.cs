@@ -11,13 +11,16 @@ namespace Steam.Application.Services.Auth.Implementations
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
+        private readonly IEmailService _emailService; // ƏLAVƏ EDİLDİ
 
-        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService)
+        public AuthService(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailService emailService) // Dəyişdirildi
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _emailService = emailService; // ƏLAVƏ EDİLDİ
         }
+
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
@@ -76,8 +79,14 @@ namespace Steam.Application.Services.Auth.Implementations
             if (user == null) return false;
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // TODO: Implement an EmailService to send the token to the user's email.
-            // await _emailService.SendPasswordResetEmailAsync(user.Email, token);
+
+            // TODO: URL-i frontend-dəki şifrə bərpa səhifəsinə uyğunlaşdırın
+            var resetLink = $"https://your-frontend-url/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Reset Your Password",
+                $"Please reset your password by clicking here: <a href='{resetLink}'>link</a>");
 
             return true;
         }
