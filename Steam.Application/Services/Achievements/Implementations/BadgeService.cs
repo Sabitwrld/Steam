@@ -11,43 +11,48 @@ namespace Steam.Application.Services.Achievements.Implementations
 {
     public class BadgeService : IBadgeService
     {
-        private readonly IRepository<Badge> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public BadgeService(IRepository<Badge> repository, IMapper mapper)
+        public BadgeService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<BadgeReturnDto> CreateBadgeAsync(BadgeCreateDto dto)
         {
             var entity = _mapper.Map<Badge>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.BadgeRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<BadgeReturnDto>(entity);
         }
 
         public async Task<BadgeReturnDto> UpdateBadgeAsync(int id, BadgeUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.BadgeRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Badge), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.BadgeRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<BadgeReturnDto>(entity);
         }
 
         public async Task<bool> DeleteBadgeAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.BadgeRepository.GetByIdAsync(id);
             if (entity == null) return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.BadgeRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<BadgeReturnDto> GetBadgeByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.BadgeRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Badge), id);
 
@@ -56,7 +61,7 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<BadgeListItemDto>> GetAllBadgesAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.BadgeRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

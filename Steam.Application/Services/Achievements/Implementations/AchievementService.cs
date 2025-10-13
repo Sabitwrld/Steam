@@ -11,43 +11,48 @@ namespace Steam.Application.Services.Achievements.Implementations
 {
     public class AchievementService : IAchievementService
     {
-        private readonly IRepository<Achievement> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public AchievementService(IRepository<Achievement> repository, IMapper mapper)
+        public AchievementService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<AchievementReturnDto> CreateAchievementAsync(AchievementCreateDto dto)
         {
             var entity = _mapper.Map<Achievement>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.AchievementRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<AchievementReturnDto>(entity);
         }
 
         public async Task<AchievementReturnDto> UpdateAchievementAsync(int id, AchievementUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.AchievementRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Achievement), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.AchievementRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<AchievementReturnDto>(entity);
         }
 
         public async Task<bool> DeleteAchievementAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.AchievementRepository.GetByIdAsync(id);
             if (entity == null) return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.AchievementRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<AchievementReturnDto> GetAchievementByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.AchievementRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Achievement), id);
 
@@ -56,7 +61,7 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<AchievementListItemDto>> GetAllAchievementsAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.AchievementRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

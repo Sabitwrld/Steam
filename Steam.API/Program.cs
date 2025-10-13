@@ -55,46 +55,7 @@ namespace Steam.API
 
 
             #region Register Repositories
-            builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            #region Catalog Repositories
-            builder.Services.AddScoped<IApplicationCatalogRepository, ApplicationCatalogRepository>();
-            builder.Services.AddScoped<IGenreRepository, GenreRepository>();
-            builder.Services.AddScoped<IMediaRepository, MediaRepository>();
-            builder.Services.AddScoped<ISystemRequirementsRepository, SystemRequirementsRepository>();
-            builder.Services.AddScoped<ITagRepository, TagRepository>();
-            #endregion
-            #region Store Repositories
-            builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
-            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-            builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
-            builder.Services.AddScoped<IPricePointRepository, PricePointRepository>();
-            builder.Services.AddScoped<IRegionalPriceRepository, RegionalPriceRepository>();
-            builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
-            builder.Services.AddScoped<IGiftRepository, GiftRepository>();
-            builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
-            #endregion
-            #region Orders Repositories
-            builder.Services.AddScoped<ICartRepository, CartRepository>();
-            builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
-            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-            builder.Services.AddScoped<IRefundRepository, RefundRepository>();
-            #endregion
-            #region Library Repositories
-            builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
-            builder.Services.AddScoped<IUserLibraryRepository, UserLibraryRepository>();
-            #endregion
-            #region Reviews & Rating Repositories
-            builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-            #endregion
-            #region Achievements Repositories
-            builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
-            builder.Services.AddScoped<ICraftingRecipeRepository, CraftingRecipeRepository>();
-            builder.Services.AddScoped<ILeaderboardRepository, LeaderboardRepository>();
-            builder.Services.AddScoped<IUserAchievementRepository, UserAchievementRepository>();
-            builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
-            #endregion
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             #endregion
 
             #region Register Services

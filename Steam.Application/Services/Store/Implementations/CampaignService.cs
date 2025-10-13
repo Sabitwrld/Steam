@@ -11,45 +11,49 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class CampaignService : ICampaignService
     {
-        private readonly IRepository<Campaign> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public CampaignService(IRepository<Campaign> repository, IMapper mapper)
+        public CampaignService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<CampaignReturnDto> CreateCampaignAsync(CampaignCreateDto dto)
         {
             var entity = _mapper.Map<Campaign>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.CampaignRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<CampaignReturnDto>(entity);
         }
 
         public async Task<CampaignReturnDto> UpdateCampaignAsync(int id, CampaignUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.CampaignRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Campaign), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.CampaignRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<CampaignReturnDto>(entity);
         }
 
         public async Task<bool> DeleteCampaignAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.CampaignRepository.GetByIdAsync(id);
             if (entity == null)
                 return false;
 
-            return await _repository.DeleteAsync(entity);
+            _unitOfWork.CampaignRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<CampaignReturnDto> GetCampaignByIdAsync(int id)
         {
-            var entity = await _repository.GetEntityAsync(
+            var entity = await _unitOfWork.CampaignRepository.GetEntityAsync(
                 predicate: c => c.Id == id,
                 includes: new Func<IQueryable<Campaign>, IQueryable<Campaign>>[] { q => q.Include(c => c.Discounts) }
             );
@@ -62,7 +66,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<CampaignListItemDto>> GetAllCampaignsAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.CampaignRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

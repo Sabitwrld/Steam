@@ -11,51 +11,51 @@ namespace Steam.Application.Services.Orders.Implementations
 {
     public class RefundService : IRefundService
     {
-        private readonly IRepository<Refund> _refundRepo;
-        private readonly IRepository<Payment> _paymentRepo;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public RefundService(IRepository<Refund> refundRepo, IRepository<Payment> paymentRepo, IMapper mapper)
+        public RefundService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _refundRepo = refundRepo;
-            _paymentRepo = paymentRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<RefundReturnDto> RequestRefundAsync(RefundCreateDto dto)
         {
-            var payment = await _paymentRepo.GetByIdAsync(dto.PaymentId);
+            var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(dto.PaymentId); // Dəyişdirildi
             if (payment == null)
                 throw new NotFoundException(nameof(Payment), dto.PaymentId);
 
             if (dto.Amount > payment.Amount)
-                throw new System.Exception("Refund amount cannot be greater than the payment amount.");
+                throw new Exception("Refund amount cannot be greater than the payment amount.");
 
             var refund = _mapper.Map<Refund>(dto);
-            refund.Status = "Requested"; // Initial status
+            refund.Status = "Requested";
 
-            await _refundRepo.CreateAsync(refund);
+            await _unitOfWork.RefundRepository.CreateAsync(refund); // Dəyişdirildi
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
+
             return _mapper.Map<RefundReturnDto>(refund);
         }
 
         public async Task<RefundReturnDto> UpdateRefundStatusAsync(int id, string status)
         {
-            var refund = await _refundRepo.GetByIdAsync(id);
+            var refund = await _unitOfWork.RefundRepository.GetByIdAsync(id); // Dəyişdirildi
             if (refund == null)
                 throw new NotFoundException(nameof(Refund), id);
 
-            // TODO: Add logic here to check for valid status transitions 
-            // and maybe return money to the user if status is "Approved"
             refund.Status = status;
-            refund.RefundDate = System.DateTime.UtcNow;
+            refund.RefundDate = DateTime.UtcNow;
 
-            await _refundRepo.UpdateAsync(refund);
+            _unitOfWork.RefundRepository.Update(refund); // Dəyişdirildi
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
+
             return _mapper.Map<RefundReturnDto>(refund);
         }
 
         public async Task<RefundReturnDto> GetRefundByIdAsync(int id)
         {
-            var refund = await _refundRepo.GetByIdAsync(id);
+            var refund = await _unitOfWork.RefundRepository.GetByIdAsync(id); // Dəyişdirildi
             if (refund == null)
                 throw new NotFoundException(nameof(Refund), id);
 
@@ -64,7 +64,7 @@ namespace Steam.Application.Services.Orders.Implementations
 
         public async Task<PagedResponse<RefundListItemDto>> GetAllRefundsAsync(int pageNumber, int pageSize)
         {
-            var query = _refundRepo.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.RefundRepository.GetQuery(asNoTracking: true); // Dəyişdirildi
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

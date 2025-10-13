@@ -12,14 +12,14 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class VoucherService : IVoucherService
     {
-        private readonly IRepository<Voucher> _repository;
-        private readonly IUserLibraryService _userLibraryService; // ADD THIS
-        private readonly ILicenseService _licenseService;         // ADD THIS
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
+        private readonly IUserLibraryService _userLibraryService;
+        private readonly ILicenseService _licenseService;
         private readonly IMapper _mapper;
 
-        public VoucherService(IRepository<Voucher> repository, IMapper mapper, IUserLibraryService userLibraryService, ILicenseService licenseService)
+        public VoucherService(IUnitOfWork unitOfWork, IMapper mapper, IUserLibraryService userLibraryService, ILicenseService licenseService) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userLibraryService = userLibraryService;
             _licenseService = licenseService;
@@ -28,13 +28,14 @@ namespace Steam.Application.Services.Store.Implementations
         public async Task<VoucherReturnDto> CreateVoucherAsync(VoucherCreateDto dto)
         {
             var entity = _mapper.Map<Voucher>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.VoucherRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<VoucherReturnDto>(entity);
         }
 
-        public async Task<VoucherReturnDto> RedeemVoucherAsync(string code, string userId) // UserId is now string
+        public async Task<VoucherReturnDto> RedeemVoucherAsync(string code, string userId)
         {
-            var voucher = await _repository.GetEntityAsync(v => v.Code == code);
+            var voucher = await _unitOfWork.VoucherRepository.GetEntityAsync(v => v.Code == code);
 
             if (voucher == null)
                 throw new NotFoundException("Voucher with this code does not exist.");
@@ -45,7 +46,6 @@ namespace Steam.Application.Services.Store.Implementations
             if (voucher.ExpirationDate < DateTime.UtcNow)
                 throw new Exception("This voucher has expired.");
 
-            // --- INTEGRATION LOGIC: Add the game to the user's library ---
             var userLibrary = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
             var licenseDto = new DTOs.Library.License.LicenseCreateDto
             {
@@ -53,17 +53,18 @@ namespace Steam.Application.Services.Store.Implementations
                 LicenseType = "Lifetime"
             };
             await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
-            // --- END INTEGRATION ---
 
             voucher.IsUsed = true;
-            await _repository.UpdateAsync(voucher);
+            _unitOfWork.VoucherRepository.Update(voucher);
+
+            await _unitOfWork.CommitAsync();
 
             return _mapper.Map<VoucherReturnDto>(voucher);
         }
 
         public async Task<VoucherReturnDto> GetVoucherByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.VoucherRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Voucher), id);
 
@@ -72,7 +73,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<VoucherListItemDto>> GetAllVouchersAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.VoucherRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

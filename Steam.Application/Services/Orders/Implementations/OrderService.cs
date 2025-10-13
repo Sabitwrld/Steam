@@ -11,13 +11,13 @@ namespace Steam.Application.Services.Orders.Implementations
 {
     public class OrderService : IOrderService
     {
-        private readonly IRepository<Order> _orderRepo;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly ICartService _cartService;
         private readonly IMapper _mapper;
 
-        public OrderService(IRepository<Order> orderRepo, ICartService cartService, IMapper mapper)
+        public OrderService(IUnitOfWork unitOfWork, ICartService cartService, IMapper mapper) // Dəyişdirildi
         {
-            _orderRepo = orderRepo;
+            _unitOfWork = unitOfWork;
             _cartService = cartService;
             _mapper = mapper;
         }
@@ -45,15 +45,17 @@ namespace Steam.Application.Services.Orders.Implementations
                 Price = cartItem.Price
             }).ToList();
 
-            await _orderRepo.CreateAsync(order);
-            await _cartService.ClearCartAsync(userId);
+            await _unitOfWork.OrderRepository.CreateAsync(order);
+            await _cartService.ClearCartAsync(userId); // Bu metod özü artıq Commit etmir
+
+            await _unitOfWork.CommitAsync(); // Bütün dəyişikliklər burada saxlanılır
 
             return _mapper.Map<OrderReturnDto>(order);
         }
 
         public async Task<OrderReturnDto> GetOrderByIdAsync(int orderId)
         {
-            var order = await _orderRepo.GetEntityAsync(
+            var order = await _unitOfWork.OrderRepository.GetEntityAsync( // Dəyişdirildi
                 predicate: o => o.Id == orderId,
                 includes: new[] {
                     (Func<IQueryable<Order>, IQueryable<Order>>)(q => q.Include(o => o.Items).ThenInclude(oi => oi.Application)),
@@ -67,11 +69,10 @@ namespace Steam.Application.Services.Orders.Implementations
             return _mapper.Map<OrderReturnDto>(order);
         }
 
-        // FIXED: Renamed this method from GetOrdersForUserAsync to GetOrdersByUserIdAsync
         public async Task<PagedResponse<OrderListItemDto>> GetOrdersByUserIdAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _orderRepo.GetQuery(o => o.UserId == userId, asNoTracking: true)
-                                   .Include(o => o.Items); // Include items to get the count
+            var query = _unitOfWork.OrderRepository.GetQuery(o => o.UserId == userId, asNoTracking: true) // Dəyişdirildi
+                                   .Include(o => o.Items);
 
             var totalCount = await query.CountAsync();
             var items = await query.OrderByDescending(o => o.OrderDate)
@@ -90,12 +91,14 @@ namespace Steam.Application.Services.Orders.Implementations
 
         public async Task<OrderReturnDto> UpdateOrderStatusAsync(int orderId, string status)
         {
-            var order = await _orderRepo.GetByIdAsync(orderId);
+            var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId); // Dəyişdirildi
             if (order == null)
                 throw new NotFoundException(nameof(Order), orderId);
 
             order.Status = status;
-            await _orderRepo.UpdateAsync(order);
+            _unitOfWork.OrderRepository.Update(order); // Dəyişdirildi
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
+
             return _mapper.Map<OrderReturnDto>(order);
         }
     }

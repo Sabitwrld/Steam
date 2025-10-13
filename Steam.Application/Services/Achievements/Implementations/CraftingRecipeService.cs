@@ -11,15 +11,12 @@ namespace Steam.Application.Services.Achievements.Implementations
 {
     public class CraftingRecipeService : ICraftingRecipeService
     {
-        private readonly IRepository<CraftingRecipe> _repository;
-        // The IRepository<CraftingRecipeRequirement> is REMOVED
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public CraftingRecipeService(
-            IRepository<CraftingRecipe> repository,
-            IMapper mapper) // Dependency REMOVED from constructor
+        public CraftingRecipeService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -27,19 +24,19 @@ namespace Steam.Application.Services.Achievements.Implementations
         {
             var entity = _mapper.Map<CraftingRecipe>(dto);
 
-            // The requirements will be added to the collection, but the join entity itself won't be created here.
             entity.Requirements = dto.RequiredBadgeIds.Select(badgeId => new CraftingRecipeRequirement
             {
                 RequiredBadgeId = badgeId
             }).ToList();
 
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.CraftingRecipeRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return await GetCraftingRecipeByIdAsync(entity.Id);
         }
 
         public async Task<CraftingRecipeReturnDto> UpdateCraftingRecipeAsync(int id, CraftingRecipeUpdateDto dto)
         {
-            var entity = await _repository.GetEntityAsync(
+            var entity = await _unitOfWork.CraftingRecipeRepository.GetEntityAsync(
                 predicate: cr => cr.Id == id,
                 includes: new Func<IQueryable<CraftingRecipe>, IQueryable<CraftingRecipe>>[] { q => q.Include(cr => cr.Requirements) }
             );
@@ -47,11 +44,8 @@ namespace Steam.Application.Services.Achievements.Implementations
             if (entity == null)
                 throw new NotFoundException(nameof(CraftingRecipe), id);
 
-            // Update main properties
             _mapper.Map(dto, entity);
 
-            // Let EF Core handle the join table updates
-            // It will compare the new list with the old list and apply changes (delete, insert)
             entity.Requirements.Clear();
             foreach (var badgeId in dto.RequiredBadgeIds)
             {
@@ -61,22 +55,24 @@ namespace Steam.Application.Services.Achievements.Implementations
                 });
             }
 
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.CraftingRecipeRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return await GetCraftingRecipeByIdAsync(id);
         }
 
-        // --- Other methods remain the same ---
-
         public async Task<bool> DeleteCraftingRecipeAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.CraftingRecipeRepository.GetByIdAsync(id);
             if (entity == null) return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.CraftingRecipeRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<CraftingRecipeReturnDto> GetCraftingRecipeByIdAsync(int id)
         {
-            var entity = await _repository.GetEntityAsync(
+            var entity = await _unitOfWork.CraftingRecipeRepository.GetEntityAsync(
                 predicate: cr => cr.Id == id,
                 includes: new Func<IQueryable<CraftingRecipe>, IQueryable<CraftingRecipe>>[]
                 {
@@ -94,7 +90,7 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<CraftingRecipeListItemDto>> GetAllCraftingRecipesAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true).Include(cr => cr.ResultBadge);
+            var query = _unitOfWork.CraftingRecipeRepository.GetQuery(asNoTracking: true).Include(cr => cr.ResultBadge);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

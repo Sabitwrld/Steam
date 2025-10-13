@@ -11,51 +11,55 @@ namespace Steam.Application.Services.Library.Implementations
 {
     public class UserLibraryService : IUserLibraryService
     {
-        private readonly IRepository<UserLibrary> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public UserLibraryService(IRepository<UserLibrary> repository, IMapper mapper)
+        public UserLibraryService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-
         public async Task<UserLibraryReturnDto> CreateUserLibraryAsync(UserLibraryCreateDto dto)
         {
-            var existingLibrary = await _repository.IsExistsAsync(ul => ul.UserId == dto.UserId);
+            var existingLibrary = await _unitOfWork.UserLibraryRepository.IsExistsAsync(ul => ul.UserId == dto.UserId);
             if (existingLibrary)
             {
                 throw new Exception($"A library for user with ID {dto.UserId} already exists.");
             }
 
             var entity = _mapper.Map<UserLibrary>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.UserLibraryRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<UserLibraryReturnDto>(entity);
         }
 
         public async Task<UserLibraryReturnDto> UpdateUserLibraryAsync(int id, UserLibraryUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.UserLibraryRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(UserLibrary), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
-            return await GetUserLibraryByIdAsync(id); 
+            _unitOfWork.UserLibraryRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
+            return await GetUserLibraryByIdAsync(id);
         }
 
         public async Task<bool> DeleteUserLibraryAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.UserLibraryRepository.GetByIdAsync(id);
             if (entity == null)
                 return false;
 
-            return await _repository.DeleteAsync(entity);
+            _unitOfWork.UserLibraryRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
+
         public async Task<UserLibraryReturnDto> GetUserLibraryByUserIdAsync(string userId)
         {
-            var library = await _repository.GetEntityAsync(
+            var library = await _unitOfWork.UserLibraryRepository.GetEntityAsync(
                 predicate: ul => ul.UserId == userId,
                 includes: new[] {
                     (Func<IQueryable<UserLibrary>, IQueryable<UserLibrary>>)(q => q.Include(ul => ul.Licenses)
@@ -66,7 +70,8 @@ namespace Steam.Application.Services.Library.Implementations
             if (library == null)
             {
                 var newLibrary = new UserLibrary { UserId = userId };
-                await _repository.CreateAsync(newLibrary);
+                await _unitOfWork.UserLibraryRepository.CreateAsync(newLibrary);
+                await _unitOfWork.CommitAsync(); // Yeni kitabxana dərhal yaradılmalıdır
                 return _mapper.Map<UserLibraryReturnDto>(newLibrary);
             }
 
@@ -75,7 +80,7 @@ namespace Steam.Application.Services.Library.Implementations
 
         public async Task<UserLibraryReturnDto> GetUserLibraryByIdAsync(int id)
         {
-            var entity = await _repository.GetEntityAsync(
+            var entity = await _unitOfWork.UserLibraryRepository.GetEntityAsync(
                 predicate: ul => ul.Id == id,
                 includes: new[] {
                     (Func<IQueryable<UserLibrary>, IQueryable<UserLibrary>>)(q => q.Include(ul => ul.Licenses)
@@ -91,7 +96,7 @@ namespace Steam.Application.Services.Library.Implementations
 
         public async Task<PagedResponse<UserLibraryListItemDto>> GetAllUserLibrariesAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true)
+            var query = _unitOfWork.UserLibraryRepository.GetQuery(asNoTracking: true)
                                    .Include(ul => ul.Licenses);
 
             var totalCount = await query.CountAsync();

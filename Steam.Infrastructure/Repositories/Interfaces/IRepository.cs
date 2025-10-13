@@ -22,14 +22,14 @@ namespace Steam.Infrastructure.Repositories.Interfaces
             bool isIgnoredDeleteBehaviour = false,
             params Func<IQueryable<T>, IQueryable<T>>[] includes);
 
-        Task<T> CreateAsync(T entity, bool saveChanges = true);
+        // DƏYİŞİKLİK: saveChanges parametri ləğv edildi
+        Task<T> CreateAsync(T entity);
 
-        Task<T> UpdateAsync(T entity, bool saveChanges = true);
+        // DƏYİŞİKLİK: saveChanges parametri ləğv edildi və sinxron oldu
+        void Update(T entity);
 
-        /// <summary>
-        /// Soft delete by default. Hard delete üçün hardDelete = true.
-        /// </summary>
-        Task<bool> DeleteAsync(T entity, bool hardDelete = false, bool saveChanges = true);
+        // DƏYİŞİKLİK: saveChanges parametri ləğv edildi və sinxron oldu
+        void Delete(T entity, bool hardDelete = false);
 
         Task<bool> IsExistsAsync(
             Expression<Func<T, bool>>? predicate = null,
@@ -44,6 +44,5 @@ namespace Steam.Infrastructure.Repositories.Interfaces
             params Func<IQueryable<T>, IQueryable<T>>[]? includes);
         Task<T?> GetByIdAsync(int id, params Func<IQueryable<T>, IQueryable<T>>[]? includes);
 
-        Task<int> SaveChangesAsync();
     }
 }

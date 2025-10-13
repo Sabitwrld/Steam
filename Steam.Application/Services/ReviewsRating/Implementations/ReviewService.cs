@@ -11,64 +11,64 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
 {
     public class ReviewService : IReviewService
     {
-        private readonly IRepository<Review> _reviewRepo;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public ReviewService(IRepository<Review> reviewRepo, IMapper mapper)
+        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _reviewRepo = reviewRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<ReviewReturnDto> CreateReviewAsync(ReviewCreateDto dto)
         {
-            // Check if the user has already reviewed this application
-            var existingReview = await _reviewRepo.IsExistsAsync(r => r.UserId == dto.UserId && r.ApplicationId == dto.ApplicationId);
+            var existingReview = await _unitOfWork.ReviewRepository.IsExistsAsync(r => r.UserId == dto.UserId && r.ApplicationId == dto.ApplicationId);
             if (existingReview)
             {
                 throw new Exception("You have already submitted a review for this application.");
             }
 
             var entity = _mapper.Map<Review>(dto);
-            await _reviewRepo.CreateAsync(entity);
+            await _unitOfWork.ReviewRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
 
-            // Re-fetch with user details to return the correct DTO with UserName
             return await GetReviewByIdAsync(entity.Id);
         }
 
         public async Task<ReviewReturnDto> UpdateReviewAsync(int reviewId, string userId, ReviewUpdateDto dto)
         {
-            var entity = await _reviewRepo.GetByIdAsync(reviewId);
+            var entity = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
 
             if (entity == null)
                 throw new NotFoundException(nameof(Review), reviewId);
 
-            // Security check: ensure the user making the request is the owner of the review
             if (entity.UserId != userId)
                 throw new Exception("You are not authorized to edit this review.");
 
             _mapper.Map(dto, entity);
-            await _reviewRepo.UpdateAsync(entity);
+            _unitOfWork.ReviewRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
 
             return await GetReviewByIdAsync(entity.Id);
         }
 
         public async Task<bool> DeleteReviewAsync(int reviewId, string userId)
         {
-            var entity = await _reviewRepo.GetByIdAsync(reviewId);
+            var entity = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
             if (entity == null)
                 return false;
 
-            // Security check: ensure the user making the request is the owner of the review
             if (entity.UserId != userId)
                 throw new Exception("You are not authorized to delete this review.");
 
-            return await _reviewRepo.DeleteAsync(entity);
+            _unitOfWork.ReviewRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<ReviewReturnDto> GetReviewByIdAsync(int id)
         {
-            var entity = await _reviewRepo.GetEntityAsync(
+            var entity = await _unitOfWork.ReviewRepository.GetEntityAsync(
                 predicate: r => r.Id == id,
                 includes: new Func<IQueryable<Review>, IQueryable<Review>>[] { q => q.Include(r => r.User) }
             );
@@ -81,7 +81,7 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
 
         public async Task<PagedResponse<ReviewListItemDto>> GetReviewsForApplicationAsync(int applicationId, int pageNumber, int pageSize)
         {
-            var query = _reviewRepo.GetQuery(r => r.ApplicationId == applicationId, asNoTracking: true)
+            var query = _unitOfWork.ReviewRepository.GetQuery(r => r.ApplicationId == applicationId, asNoTracking: true)
                                    .Include(r => r.User);
 
             var totalCount = await query.CountAsync();
@@ -90,12 +90,11 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
                                      .Take(pageSize)
                                      .ToListAsync();
 
-            // The logic for shortening content is now handled by AutoMapper, so the loop is removed.
             var mappedItems = _mapper.Map<List<ReviewListItemDto>>(items);
 
             return new PagedResponse<ReviewListItemDto>
             {
-                Data = mappedItems, // Just use the directly mapped items
+                Data = mappedItems,
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount
@@ -103,22 +102,24 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
         }
         public async Task MarkAsHelpfulAsync(int reviewId)
         {
-            var review = await _reviewRepo.GetByIdAsync(reviewId);
+            var review = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
             if (review == null)
                 throw new NotFoundException(nameof(Review), reviewId);
 
             review.HelpfulCount++;
-            await _reviewRepo.UpdateAsync(review);
+            _unitOfWork.ReviewRepository.Update(review);
+            await _unitOfWork.CommitAsync();
         }
 
         public async Task MarkAsFunnyAsync(int reviewId)
         {
-            var review = await _reviewRepo.GetByIdAsync(reviewId);
+            var review = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
             if (review == null)
                 throw new NotFoundException(nameof(Review), reviewId);
 
             review.FunnyCount++;
-            await _reviewRepo.UpdateAsync(review);
+            _unitOfWork.ReviewRepository.Update(review);
+            await _unitOfWork.CommitAsync();
         }
     }
 }

@@ -11,44 +11,49 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class DiscountService : IDiscountService
     {
-        private readonly IRepository<Discount> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public DiscountService(IRepository<Discount> repository, IMapper mapper)
+        public DiscountService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<DiscountReturnDto> CreateDiscountAsync(DiscountCreateDto dto)
         {
             var entity = _mapper.Map<Discount>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.DiscountRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<DiscountReturnDto>(entity);
         }
 
         public async Task<DiscountReturnDto> UpdateDiscountAsync(int id, DiscountUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.DiscountRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Discount), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.DiscountRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<DiscountReturnDto>(entity);
         }
 
         public async Task<bool> DeleteDiscountAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.DiscountRepository.GetByIdAsync(id);
             if (entity == null)
                 return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.DiscountRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<DiscountReturnDto> GetDiscountByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.DiscountRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Discount), id);
 
@@ -57,7 +62,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<DiscountListItemDto>> GetAllDiscountsAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.DiscountRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

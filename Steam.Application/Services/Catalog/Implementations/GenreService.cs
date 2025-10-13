@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Catalog.Genre;
 using Steam.Application.DTOs.Pagination;
+using Steam.Application.Exceptions;
 using Steam.Application.Services.Catalog.Interfaces;
 using Steam.Domain.Entities.Catalog;
 using Steam.Infrastructure.Repositories.Interfaces;
@@ -10,55 +11,64 @@ namespace Steam.Application.Services.Catalog.Implementations
 {
     public class GenreService : IGenreService
     {
-        private readonly IRepository<Genre> _repo;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public GenreService(IRepository<Genre> repo, IMapper mapper)
+        public GenreService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repo = repo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<GenreReturnDto> GetByIdAsync(int id)
         {
-            var entity = await _repo.GetByIdAsync(id, q => q.Include(g => g.Applications));
+            var entity = await _unitOfWork.GenreRepository.GetByIdAsync(id, q => q.Include(g => g.Applications));
+            if (entity == null) throw new NotFoundException(nameof(Genre), id);
             return _mapper.Map<GenreReturnDto>(entity);
         }
 
         public async Task<PagedResponse<GenreListItemDto>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var entities = await _repo.GetAllAsync(skip: (pageNumber - 1) * pageSize, take: pageSize);
+            var query = _unitOfWork.GenreRepository.GetQuery(asNoTracking: true);
+            var totalCount = await query.CountAsync();
+            var entities = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
             return new PagedResponse<GenreListItemDto>
             {
                 Data = _mapper.Map<List<GenreListItemDto>>(entities),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
-                TotalCount = await _repo.GetQuery().CountAsync()
+                TotalCount = totalCount
             };
         }
 
         public async Task<GenreReturnDto> CreateAsync(GenreCreateDto dto)
         {
             var entity = _mapper.Map<Genre>(dto);
-            await _repo.CreateAsync(entity);
+            await _unitOfWork.GenreRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<GenreReturnDto>(entity);
         }
 
         public async Task<GenreReturnDto> UpdateAsync(int id, GenreUpdateDto dto)
         {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) throw new Exception("Genre not found");
+            var entity = await _unitOfWork.GenreRepository.GetByIdAsync(id);
+            if (entity == null) throw new NotFoundException(nameof(Genre), id);
 
             _mapper.Map(dto, entity);
-            await _repo.UpdateAsync(entity);
+            _unitOfWork.GenreRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<GenreReturnDto>(entity);
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _repo.GetByIdAsync(id);
+            var entity = await _unitOfWork.GenreRepository.GetByIdAsync(id);
             if (entity == null) return false;
-            return await _repo.DeleteAsync(entity);
+
+            _unitOfWork.GenreRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
     }
 }

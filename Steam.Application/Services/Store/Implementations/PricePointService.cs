@@ -11,45 +11,49 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class PricePointService : IPricePointService
     {
-        private readonly IRepository<PricePoint> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public PricePointService(IRepository<PricePoint> repository, IMapper mapper)
+        public PricePointService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<PricePointReturnDto> CreatePricePointAsync(PricePointCreateDto dto)
         {
             var entity = _mapper.Map<PricePoint>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.PricePointRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<PricePointReturnDto>(entity);
         }
 
         public async Task<PricePointReturnDto> UpdatePricePointAsync(int id, PricePointUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.PricePointRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(PricePoint), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.PricePointRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<PricePointReturnDto>(entity);
         }
 
         public async Task<bool> DeletePricePointAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.PricePointRepository.GetByIdAsync(id);
             if (entity == null)
                 return false;
 
-            return await _repository.DeleteAsync(entity);
+            _unitOfWork.PricePointRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<PricePointReturnDto> GetPricePointByIdAsync(int id)
         {
-            var entity = await _repository.GetEntityAsync(
+            var entity = await _unitOfWork.PricePointRepository.GetEntityAsync(
                 predicate: p => p.Id == id,
                 includes: new Func<IQueryable<PricePoint>, IQueryable<PricePoint>>[] { q => q.Include(p => p.RegionalPrices) }
             );
@@ -62,7 +66,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<PricePointListItemDto>> GetAllPricePointsAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.PricePointRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

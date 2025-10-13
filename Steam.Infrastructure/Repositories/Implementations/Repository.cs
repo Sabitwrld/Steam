@@ -17,31 +17,23 @@ namespace Steam.Infrastructure.Repositories.Implementations
             _dbSet = _context.Set<T>();
         }
 
-        public async Task<T> CreateAsync(T entity, bool saveChanges = true)
+        public async Task<T> CreateAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
-            if (saveChanges) await _context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task<T> UpdateAsync(T entity, bool saveChanges = true)
+        public void Update(T entity)
         {
             _dbSet.Update(entity);
-            if (saveChanges) await _context.SaveChangesAsync();
-            return entity;
         }
 
-        public async Task<bool> DeleteAsync(T entity, bool hardDelete = false, bool saveChanges = true)
+        public void Delete(T entity, bool hardDelete = false)
         {
             if (hardDelete)
                 _dbSet.Remove(entity);
             else
                 entity.IsDeleted = true;
-
-            if (saveChanges)
-                await _context.SaveChangesAsync();
-
-            return true;
         }
 
         public async Task<T?> GetEntityAsync(
@@ -143,9 +135,6 @@ namespace Steam.Infrastructure.Repositories.Implementations
 
             return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
         }
-
-        public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
-
 
     }
 }

@@ -11,44 +11,49 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class CouponService : ICouponService
     {
-        private readonly IRepository<Coupon> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public CouponService(IRepository<Coupon> repository, IMapper mapper)
+        public CouponService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<CouponReturnDto> CreateCouponAsync(CouponCreateDto dto)
         {
             var entity = _mapper.Map<Coupon>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.CouponRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<CouponReturnDto>(entity);
         }
 
         public async Task<CouponReturnDto> UpdateCouponAsync(int id, CouponUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.CouponRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Coupon), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.CouponRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<CouponReturnDto>(entity);
         }
 
         public async Task<bool> DeleteCouponAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.CouponRepository.GetByIdAsync(id);
             if (entity == null)
                 return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.CouponRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<CouponReturnDto> GetCouponByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.CouponRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Coupon), id);
 
@@ -57,7 +62,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<CouponListItemDto>> GetAllCouponsAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.CouponRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

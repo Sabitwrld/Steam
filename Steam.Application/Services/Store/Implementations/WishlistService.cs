@@ -11,38 +11,53 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class WishlistService : IWishlistService
     {
-        private readonly IRepository<Wishlist> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public WishlistService(IRepository<Wishlist> repository, IMapper mapper)
+        public WishlistService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<WishlistReturnDto> CreateWishlistAsync(WishlistCreateDto dto)
         {
-            var existing = await _repository.IsExistsAsync(w => w.UserId == dto.UserId && w.ApplicationId == dto.ApplicationId);
+            var existing = await _unitOfWork.WishlistRepository.IsExistsAsync(w => w.UserId == dto.UserId && w.ApplicationId == dto.ApplicationId);
             if (existing)
             {
-                throw new System.Exception("This item is already in the wishlist.");
+                throw new Exception("This item is already in the wishlist.");
             }
 
             var entity = _mapper.Map<Wishlist>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.WishlistRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<WishlistReturnDto>(entity);
         }
 
         public async Task<bool> DeleteWishlistAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.WishlistRepository.GetByIdAsync(id);
             if (entity == null) return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.WishlistRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteWishlistByAppIdAsync(string userId, int applicationId)
+        {
+            var entity = await _unitOfWork.WishlistRepository.GetEntityAsync(w => w.UserId == userId && w.ApplicationId == applicationId);
+            if (entity == null)
+                return false;
+
+            _unitOfWork.WishlistRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<WishlistReturnDto> GetWishlistByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.WishlistRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Wishlist), id);
 
@@ -51,7 +66,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<WishlistListItemDto>> GetAllWishlistsAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.WishlistRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
@@ -64,9 +79,9 @@ namespace Steam.Application.Services.Store.Implementations
             };
         }
 
-        public async Task<PagedResponse<WishlistListItemDto>> GetWishlistByUserIdAsync(string userId, int pageNumber, int pageSize) // CHANGED: from int to string
+        public async Task<PagedResponse<WishlistListItemDto>> GetWishlistByUserIdAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(w => w.UserId == userId, asNoTracking: true);
+            var query = _unitOfWork.WishlistRepository.GetQuery(w => w.UserId == userId, asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query
                 .Skip((pageNumber - 1) * pageSize)
@@ -80,14 +95,6 @@ namespace Steam.Application.Services.Store.Implementations
                 PageSize = pageSize,
                 TotalCount = totalCount
             };
-        }
-        public async Task<bool> DeleteWishlistByAppIdAsync(string userId, int applicationId)
-        {
-            var entity = await _repository.GetEntityAsync(w => w.UserId == userId && w.ApplicationId == applicationId);
-            if (entity == null)
-                return false;
-
-            return await _repository.DeleteAsync(entity);
         }
     }
 }

@@ -12,23 +12,12 @@ namespace Steam.Application.Services.Orders.Implementations
 {
     public class CartService : ICartService
     {
-        private readonly IRepository<Cart> _cartRepo;
-        private readonly IRepository<CartItem> _cartItemRepo;
-        private readonly IRepository<PricePoint> _pricePointRepo;
-        private readonly IRepository<Discount> _discountRepo;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public CartService(
-            IRepository<Cart> cartRepo,
-            IRepository<CartItem> cartItemRepo,
-            IRepository<PricePoint> pricePointRepo,
-            IRepository<Discount> discountRepo,
-            IMapper mapper)
+        public CartService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _cartRepo = cartRepo;
-            _cartItemRepo = cartItemRepo;
-            _pricePointRepo = pricePointRepo;
-            _discountRepo = discountRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -62,15 +51,16 @@ namespace Steam.Application.Services.Orders.Implementations
             if (existingItem != null)
             {
                 existingItem.Quantity += dto.Quantity > 0 ? dto.Quantity : 1;
-                await _cartItemRepo.UpdateAsync(existingItem);
+                _unitOfWork.CartItemRepository.Update(existingItem); // Dəyişdirildi
             }
             else
             {
                 var newCartItem = _mapper.Map<CartItem>(dto);
                 newCartItem.CartId = cart.Id;
-                await _cartItemRepo.CreateAsync(newCartItem);
+                await _unitOfWork.CartItemRepository.CreateAsync(newCartItem); // Dəyişdirildi
             }
 
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
             return await GetCartByUserIdAsync(userId);
         }
 
@@ -84,14 +74,15 @@ namespace Steam.Application.Services.Orders.Implementations
 
             if (quantity <= 0)
             {
-                await _cartItemRepo.DeleteAsync(cartItem);
+                _unitOfWork.CartItemRepository.Delete(cartItem); // Dəyişdirildi
             }
             else
             {
                 cartItem.Quantity = quantity;
-                await _cartItemRepo.UpdateAsync(cartItem);
+                _unitOfWork.CartItemRepository.Update(cartItem); // Dəyişdirildi
             }
 
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
             return await GetCartByUserIdAsync(userId);
         }
 
@@ -103,7 +94,9 @@ namespace Steam.Application.Services.Orders.Implementations
             if (cartItem == null)
                 throw new NotFoundException(nameof(CartItem), cartItemId);
 
-            return await _cartItemRepo.DeleteAsync(cartItem);
+            _unitOfWork.CartItemRepository.Delete(cartItem); // Dəyişdirildi
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
+            return true;
         }
 
         public async Task<bool> ClearCartAsync(string userId)
@@ -113,15 +106,18 @@ namespace Steam.Application.Services.Orders.Implementations
 
             foreach (var item in cart.Items.ToList())
             {
-                await _cartItemRepo.DeleteAsync(item, saveChanges: false);
+                _unitOfWork.CartItemRepository.Delete(item); // Dəyişdirildi
             }
-            await _cartItemRepo.SaveChangesAsync();
+
+            // CommitAsync burada çağırılmır, çünki OrderService tərəfindən idarə olunacaq
+            // await _unitOfWork.CommitAsync();
+
             return true;
         }
 
         private async Task<Cart> GetOrCreateCartByUserId(string userId)
         {
-            var cart = await _cartRepo.GetEntityAsync(
+            var cart = await _unitOfWork.CartRepository.GetEntityAsync( // Dəyişdirildi
                 predicate: c => c.UserId == userId,
                 includes: new[] {
                     (Func<IQueryable<Cart>, IQueryable<Cart>>)(q => q.Include(c => c.Items)
@@ -132,26 +128,26 @@ namespace Steam.Application.Services.Orders.Implementations
             if (cart == null)
             {
                 cart = new Cart { UserId = userId };
-                await _cartRepo.CreateAsync(cart);
+                await _unitOfWork.CartRepository.CreateAsync(cart); // Dəyişdirildi
+                await _unitOfWork.CommitAsync(); // Yeni səbət yaradıldığı üçün dərhal yadda saxlanılmalıdır
             }
             return cart;
         }
 
         private async Task<decimal> CalculateItemPrice(int applicationId)
         {
-            var pricePoint = await _pricePointRepo.GetEntityAsync(p => p.ApplicationId == applicationId);
+            var pricePoint = await _unitOfWork.PricePointRepository.GetEntityAsync(p => p.ApplicationId == applicationId); // Dəyişdirildi
             if (pricePoint == null) return 0;
 
             var price = pricePoint.BasePrice;
 
-            var activeDiscount = await _discountRepo.GetEntityAsync(d =>
+            var activeDiscount = await _unitOfWork.DiscountRepository.GetEntityAsync(d => // Dəyişdirildi
                 d.ApplicationId == applicationId &&
-                d.StartDate <= System.DateTime.UtcNow &&
-                d.EndDate >= System.DateTime.UtcNow);
+                d.StartDate <= DateTime.UtcNow &&
+                d.EndDate >= DateTime.UtcNow);
 
             if (activeDiscount != null)
             {
-                // FIXED: Changed 'Percentage' to 'Percent' to match the entity property name.
                 price *= (1 - (activeDiscount.Percent / 100));
             }
 

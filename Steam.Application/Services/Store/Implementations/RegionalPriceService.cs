@@ -11,45 +11,49 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class RegionalPriceService : IRegionalPriceService
     {
-        private readonly IRepository<RegionalPrice> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public RegionalPriceService(IRepository<RegionalPrice> repository, IMapper mapper)
+        public RegionalPriceService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<RegionalPriceReturnDto> CreateRegionalPriceAsync(RegionalPriceCreateDto dto)
         {
             var entity = _mapper.Map<RegionalPrice>(dto);
-            await _repository.CreateAsync(entity);
+            await _unitOfWork.RegionalPriceRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<RegionalPriceReturnDto>(entity);
         }
 
         public async Task<RegionalPriceReturnDto> UpdateRegionalPriceAsync(int id, RegionalPriceUpdateDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.RegionalPriceRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(RegionalPrice), id);
 
             _mapper.Map(dto, entity);
-            await _repository.UpdateAsync(entity);
+            _unitOfWork.RegionalPriceRepository.Update(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<RegionalPriceReturnDto>(entity);
         }
 
         public async Task<bool> DeleteRegionalPriceAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.RegionalPriceRepository.GetByIdAsync(id);
             if (entity == null)
                 return false;
 
-            return await _repository.DeleteAsync(entity);
+            _unitOfWork.RegionalPriceRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<RegionalPriceReturnDto> GetRegionalPriceByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.RegionalPriceRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(RegionalPrice), id);
 
@@ -58,7 +62,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<RegionalPriceListItemDto>> GetAllRegionalPricesAsync(int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.RegionalPriceRepository.GetQuery(asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

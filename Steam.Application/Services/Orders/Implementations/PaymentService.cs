@@ -12,95 +12,104 @@ namespace Steam.Application.Services.Orders.Implementations
 {
     public class PaymentService : IPaymentService
     {
-        private readonly IRepository<Payment> _paymentRepo;
-        private readonly IRepository<Order> _orderRepo; private readonly IUserLibraryService _userLibraryService; // ADD THIS
-        private readonly ILicenseService _licenseService;         // ADD THIS
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
+        private readonly IUserLibraryService _userLibraryService;
+        private readonly ILicenseService _licenseService;
         private readonly IMapper _mapper;
 
         public PaymentService(
-            IRepository<Payment> paymentRepo,
-            IRepository<Order> orderRepo,
-            IUserLibraryService userLibraryService, // ADD THIS
-            ILicenseService licenseService,         // ADD THIS
+            IUnitOfWork unitOfWork, // Dəyişdirildi
+            IUserLibraryService userLibraryService,
+            ILicenseService licenseService,
             IMapper mapper)
         {
-            _paymentRepo = paymentRepo;
-            _orderRepo = orderRepo;
-            _userLibraryService = userLibraryService; // ADD THIS
-            _licenseService = licenseService;         // ADD THIS
+            _unitOfWork = unitOfWork;
+            _userLibraryService = userLibraryService;
+            _licenseService = licenseService;
             _mapper = mapper;
         }
 
         public async Task<PaymentReturnDto> CreatePaymentAsync(PaymentCreateDto dto)
         {
-            var order = await _orderRepo.GetEntityAsync(
+            // Transaction-un başlanğıcı
+            var order = await _unitOfWork.OrderRepository.GetEntityAsync(
                 predicate: o => o.Id == dto.OrderId,
-                includes: new[] { (System.Func<IQueryable<Order>, IQueryable<Order>>)(q => q.Include(o => o.Items)) }
+                includes: new[] { (Func<IQueryable<Order>, IQueryable<Order>>)(q => q.Include(o => o.Items)) }
             );
+
             if (order == null)
                 throw new NotFoundException(nameof(Order), dto.OrderId);
 
+            if (order.Status != "Pending")
+                throw new Exception("This order cannot be paid for.");
+
             var payment = _mapper.Map<Payment>(dto);
             payment.Amount = order.TotalPrice;
-            // Simulate a successful payment
-            payment.Status = "Paid";
-            payment.PaymentDate = System.DateTime.UtcNow;
-            payment.TransactionId = System.Guid.NewGuid().ToString();
+            payment.Status = "Paid"; // Ödənişin uğurlu olduğunu simulyasiya edirik
+            payment.PaymentDate = DateTime.UtcNow;
+            payment.TransactionId = Guid.NewGuid().ToString();
 
-            await _paymentRepo.CreateAsync(payment);
+            // 1. Ödənişi contexte əlavə et
+            await _unitOfWork.PaymentRepository.CreateAsync(payment);
 
+            // 2. Sifarişin statusunu yenilə
             order.Status = "Completed";
-            await _orderRepo.UpdateAsync(order);
+            _unitOfWork.OrderRepository.Update(order);
 
-            // --- INTEGRATION LOGIC: Add games to user's library ---
+            // 3. Oyunları istifadəçinin kitabxanasına əlavə et (bu servislər də artıq CommitAsync çağırmır)
             var userLibrary = await _userLibraryService.GetUserLibraryByUserIdAsync(order.UserId);
             foreach (var item in order.Items)
             {
                 var licenseDto = new DTOs.Library.License.LicenseCreateDto
                 {
                     ApplicationId = item.ApplicationId,
-                    LicenseType = "Lifetime" // Assuming all purchases are lifetime
+                    LicenseType = "Lifetime"
                 };
+                // AddLicenseAsync metodu özü Commit etmədiyi üçün burada təhlükəsizdir
                 await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
             }
-            // --- END INTEGRATION ---
+
+            // 4. Bütün dəyişiklikləri vahid tranzaksiya ilə yadda saxla
+            await _unitOfWork.CommitAsync();
+            // Transaction-un sonu
 
             return _mapper.Map<PaymentReturnDto>(payment);
         }
 
         public async Task<PaymentReturnDto> GetPaymentByIdAsync(int id)
         {
-            var payment = await _paymentRepo.GetByIdAsync(id);
+            var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(id); // Dəyişdirildi
             if (payment == null)
                 throw new NotFoundException(nameof(Payment), id);
             return _mapper.Map<PaymentReturnDto>(payment);
         }
 
-        // --- MISSING METHODS ADDED BELOW ---
-
         public async Task<PaymentReturnDto> UpdatePaymentAsync(int id, PaymentUpdateDto dto)
         {
-            var payment = await _paymentRepo.GetByIdAsync(id);
+            var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(id); // Dəyişdirildi
             if (payment == null)
                 throw new NotFoundException(nameof(Payment), id);
 
             _mapper.Map(dto, payment);
-            await _paymentRepo.UpdateAsync(payment);
+            _unitOfWork.PaymentRepository.Update(payment); // Dəyişdirildi
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
             return _mapper.Map<PaymentReturnDto>(payment);
         }
 
         public async Task<bool> DeletePaymentAsync(int id)
         {
-            var payment = await _paymentRepo.GetByIdAsync(id);
+            var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(id); // Dəyişdirildi
             if (payment == null)
                 return false;
 
-            return await _paymentRepo.DeleteAsync(payment);
+            _unitOfWork.PaymentRepository.Delete(payment); // Dəyişdirildi
+            await _unitOfWork.CommitAsync(); // Dəyişdirildi
+            return true;
         }
 
         public async Task<PagedResponse<PaymentListItemDto>> GetAllPaymentsAsync(int pageNumber, int pageSize)
         {
-            var query = _paymentRepo.GetQuery(asNoTracking: true);
+            var query = _unitOfWork.PaymentRepository.GetQuery(asNoTracking: true); // Dəyişdirildi
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 

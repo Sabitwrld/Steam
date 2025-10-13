@@ -12,14 +12,14 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class GiftService : IGiftService
     {
-        private readonly IRepository<Gift> _repository;
-        private readonly IUserLibraryService _userLibraryService; // ADD THIS
-        private readonly ILicenseService _licenseService;         // ADD THIS
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
+        private readonly IUserLibraryService _userLibraryService;
+        private readonly ILicenseService _licenseService;
         private readonly IMapper _mapper;
 
-        public GiftService(IRepository<Gift> repository, IMapper mapper, IUserLibraryService userLibraryService, ILicenseService licenseService)
+        public GiftService(IUnitOfWork unitOfWork, IMapper mapper, IUserLibraryService userLibraryService, ILicenseService licenseService) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userLibraryService = userLibraryService;
             _licenseService = licenseService;
@@ -28,21 +28,21 @@ namespace Steam.Application.Services.Store.Implementations
         public async Task<GiftReturnDto> SendGiftAsync(GiftCreateDto dto)
         {
             var entity = _mapper.Map<Gift>(dto);
-            entity.SentAt = System.DateTime.UtcNow;
-            await _repository.CreateAsync(entity);
+            entity.SentAt = DateTime.UtcNow;
+            await _unitOfWork.GiftRepository.CreateAsync(entity);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<GiftReturnDto>(entity);
         }
 
-        public async Task<bool> RedeemGiftAsync(int giftId, string receiverId) // UserId is now string
+        public async Task<bool> RedeemGiftAsync(int giftId, string receiverId)
         {
-            var gift = await _repository.GetEntityAsync(g => g.Id == giftId && g.ReceiverId == receiverId);
+            var gift = await _unitOfWork.GiftRepository.GetEntityAsync(g => g.Id == giftId && g.ReceiverId == receiverId);
             if (gift == null)
                 throw new NotFoundException("Gift not found or does not belong to this user.");
 
             if (gift.IsRedeemed)
-                throw new System.Exception("This gift has already been redeemed.");
+                throw new Exception("This gift has already been redeemed.");
 
-            // --- INTEGRATION LOGIC: Add the gifted game to the user's library ---
             var userLibrary = await _userLibraryService.GetUserLibraryByUserIdAsync(receiverId);
             var licenseDto = new DTOs.Library.License.LicenseCreateDto
             {
@@ -50,17 +50,18 @@ namespace Steam.Application.Services.Store.Implementations
                 LicenseType = "Lifetime"
             };
             await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
-            // --- END INTEGRATION ---
 
             gift.IsRedeemed = true;
-            await _repository.UpdateAsync(gift);
+            _unitOfWork.GiftRepository.Update(gift);
+
+            await _unitOfWork.CommitAsync(); // Lisenziya və hədiyyə statusu birgə yadda saxlanılır
 
             return true;
         }
 
         public async Task<GiftReturnDto> GetGiftByIdAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.GiftRepository.GetByIdAsync(id);
             if (entity == null)
                 throw new NotFoundException(nameof(Gift), id);
 
@@ -69,7 +70,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<GiftListItemDto>> GetGiftsForUserAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(g => g.ReceiverId == userId, asNoTracking: true);
+            var query = _unitOfWork.GiftRepository.GetQuery(g => g.ReceiverId == userId, asNoTracking: true);
             var totalCount = await query.CountAsync();
             var items = await query.OrderByDescending(g => g.SentAt)
                                      .Skip((pageNumber - 1) * pageSize)

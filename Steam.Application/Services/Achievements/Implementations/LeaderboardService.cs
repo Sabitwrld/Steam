@@ -11,49 +11,55 @@ namespace Steam.Application.Services.Achievements.Implementations
 {
     public class LeaderboardService : ILeaderboardService
     {
-        private readonly IRepository<Leaderboard> _repository;
+        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
 
-        public LeaderboardService(IRepository<Leaderboard> repository, IMapper mapper)
+        public LeaderboardService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<LeaderboardReturnDto> AddOrUpdateScoreAsync(LeaderboardCreateDto dto)
         {
-            var existingEntry = await _repository.GetEntityAsync(l => l.UserId == dto.UserId && l.ApplicationId == dto.ApplicationId);
+            var existingEntry = await _unitOfWork.LeaderboardRepository.GetEntityAsync(l => l.UserId == dto.UserId && l.ApplicationId == dto.ApplicationId);
+            int entryId;
 
             if (existingEntry != null)
             {
-                // Update score only if the new score is higher
                 if (dto.Score > existingEntry.Score)
                 {
                     existingEntry.Score = dto.Score;
-                    await _repository.UpdateAsync(existingEntry);
+                    _unitOfWork.LeaderboardRepository.Update(existingEntry);
                 }
-                return await GetScoreByIdAsync(existingEntry.Id);
+                entryId = existingEntry.Id;
             }
             else
             {
                 var newEntry = _mapper.Map<Leaderboard>(dto);
-                await _repository.CreateAsync(newEntry);
-                return await GetScoreByIdAsync(newEntry.Id);
+                await _unitOfWork.LeaderboardRepository.CreateAsync(newEntry);
+                entryId = newEntry.Id; // ID-ni əldə etmək üçün
             }
+
+            await _unitOfWork.CommitAsync();
+            return await GetScoreByIdAsync(entryId);
         }
 
         public async Task<bool> DeleteScoreAsync(int id)
         {
-            var entity = await _repository.GetByIdAsync(id);
+            var entity = await _unitOfWork.LeaderboardRepository.GetByIdAsync(id);
             if (entity == null) return false;
-            return await _repository.DeleteAsync(entity);
+
+            _unitOfWork.LeaderboardRepository.Delete(entity);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<LeaderboardReturnDto> GetScoreByIdAsync(int id)
         {
-            var entity = await _repository.GetEntityAsync(
+            var entity = await _unitOfWork.LeaderboardRepository.GetEntityAsync(
                 predicate: l => l.Id == id,
-                includes: new System.Func<IQueryable<Leaderboard>, IQueryable<Leaderboard>>[] { q => q.Include(l => l.User) }
+                includes: new Func<IQueryable<Leaderboard>, IQueryable<Leaderboard>>[] { q => q.Include(l => l.User) }
             );
 
             if (entity == null)
@@ -64,7 +70,7 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<LeaderboardListItemDto>> GetLeaderboardForApplicationAsync(int applicationId, int pageNumber, int pageSize)
         {
-            var query = _repository.GetQuery(l => l.ApplicationId == applicationId, asNoTracking: true)
+            var query = _unitOfWork.LeaderboardRepository.GetQuery(l => l.ApplicationId == applicationId, asNoTracking: true)
                                    .Include(l => l.User)
                                    .OrderByDescending(l => l.Score);
 
@@ -73,7 +79,6 @@ namespace Steam.Application.Services.Achievements.Implementations
 
             var mappedItems = _mapper.Map<List<LeaderboardListItemDto>>(items);
 
-            // Set the rank for each item
             for (int i = 0; i < mappedItems.Count; i++)
             {
                 mappedItems[i].Rank = ((pageNumber - 1) * pageSize) + i + 1;
