@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Library.UserLibrary;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Library.Interfaces;
+using System.Security.Claims;
 
 namespace Steam.API.Controllers.Library
 {
@@ -21,6 +23,19 @@ namespace Steam.API.Controllers.Library
         [ProducesResponseType(404)]
         public async Task<ActionResult<UserLibraryReturnDto>> GetByUserId(string userId)
         {
+            var result = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
+            return Ok(result);
+        }
+
+        [HttpGet("my-library")] // Endpoint-in adını daha anlaşıqlı edin
+        [Authorize] // Yalnız login olmuş istifadəçilər
+        public async Task<ActionResult<UserLibraryReturnDto>> GetMyLibrary()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
             var result = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
             return Ok(result);
         }
