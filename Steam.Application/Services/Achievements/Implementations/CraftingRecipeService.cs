@@ -90,9 +90,7 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<CraftingRecipeListItemDto>> GetAllCraftingRecipesAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.CraftingRecipeRepository.GetQuery(asNoTracking: true).Include(cr => cr.ResultBadge);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.CraftingRecipeRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<CraftingRecipeListItemDto>
             {

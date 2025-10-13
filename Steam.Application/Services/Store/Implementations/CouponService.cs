@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Coupon;
 using Steam.Application.Exceptions;
@@ -62,9 +61,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<CouponListItemDto>> GetAllCouponsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.CouponRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.CouponRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<CouponListItemDto>
             {

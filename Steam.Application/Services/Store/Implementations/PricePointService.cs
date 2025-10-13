@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.PricePoint;
 using Steam.Application.Exceptions;
@@ -53,10 +52,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PricePointReturnDto> GetPricePointByIdAsync(int id)
         {
-            var entity = await _unitOfWork.PricePointRepository.GetEntityAsync(
-                predicate: p => p.Id == id,
-                includes: new Func<IQueryable<PricePoint>, IQueryable<PricePoint>>[] { q => q.Include(p => p.RegionalPrices) }
-            );
+            var entity = await _unitOfWork.PricePointRepository.GetByIdWithRegionsAsync(id);
 
             if (entity == null)
                 throw new NotFoundException(nameof(PricePoint), id);
@@ -66,9 +62,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<PricePointListItemDto>> GetAllPricePointsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.PricePointRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.PricePointRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<PricePointListItemDto>
             {

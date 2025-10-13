@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Orders.Cart;
 using Steam.Application.DTOs.Orders.CartItem;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.Orders.Interfaces;
 using Steam.Domain.Entities.Orders;
-using Steam.Domain.Entities.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
 
 namespace Steam.Application.Services.Orders.Implementations
@@ -117,18 +115,14 @@ namespace Steam.Application.Services.Orders.Implementations
 
         private async Task<Cart> GetOrCreateCartByUserId(string userId)
         {
-            var cart = await _unitOfWork.CartRepository.GetEntityAsync( // Dəyişdirildi
-                predicate: c => c.UserId == userId,
-                includes: new[] {
-                    (Func<IQueryable<Cart>, IQueryable<Cart>>)(q => q.Include(c => c.Items)
-                                                                     .ThenInclude(ci => ci.Application))
-                }
-            );
+            // Addım 1: Repository-dəki xüsusi metodu çağırın
+            var cart = await _unitOfWork.CartRepository.GetByUserIdWithItemsAsync(userId);
 
+            // Addım 2: Əgər səbət yoxdursa, yenisini yaradın
             if (cart == null)
             {
                 cart = new Cart { UserId = userId };
-                await _unitOfWork.CartRepository.CreateAsync(cart); // Dəyişdirildi
+                await _unitOfWork.CartRepository.CreateAsync(cart);
                 await _unitOfWork.CommitAsync(); // Yeni səbət yaradıldığı üçün dərhal yadda saxlanılmalıdır
             }
             return cart;

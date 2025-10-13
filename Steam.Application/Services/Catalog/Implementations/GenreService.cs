@@ -29,13 +29,12 @@ namespace Steam.Application.Services.Catalog.Implementations
 
         public async Task<PagedResponse<GenreListItemDto>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.GenreRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var entities = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            // Sorğu məntiqi Repository-yə daşındı
+            var (items, totalCount) = await _unitOfWork.GenreRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<GenreListItemDto>
             {
-                Data = _mapper.Map<List<GenreListItemDto>>(entities),
+                Data = _mapper.Map<List<GenreListItemDto>>(items),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount

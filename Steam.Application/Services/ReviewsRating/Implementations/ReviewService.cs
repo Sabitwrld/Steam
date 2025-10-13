@@ -79,16 +79,12 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
             return _mapper.Map<ReviewReturnDto>(entity);
         }
 
-        public async Task<PagedResponse<ReviewListItemDto>> GetReviewsForApplicationAsync(int applicationId, int pageNumber, int pageSize)
+        public async Task<PagedResponse<ReviewListItemDto>> GetReviewsForApplicationAsync(
+            int applicationId, int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.ReviewRepository.GetQuery(r => r.ApplicationId == applicationId, asNoTracking: true)
-                                   .Include(r => r.User);
-
-            var totalCount = await query.CountAsync();
-            var items = await query.OrderByDescending(r => r.HelpfulCount)
-                                     .Skip((pageNumber - 1) * pageSize)
-                                     .Take(pageSize)
-                                     .ToListAsync();
+            // Sorğu məntiqi Repository-yə daşındı
+            var (items, totalCount) = await _unitOfWork.ReviewRepository
+                .GetReviewsByApplicationIdPagedAsync(applicationId, pageNumber, pageSize);
 
             var mappedItems = _mapper.Map<List<ReviewListItemDto>>(items);
 

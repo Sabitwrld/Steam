@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Gift;
 using Steam.Application.Exceptions;
@@ -70,12 +69,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<GiftListItemDto>> GetGiftsForUserAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.GiftRepository.GetQuery(g => g.ReceiverId == userId, asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.OrderByDescending(g => g.SentAt)
-                                     .Skip((pageNumber - 1) * pageSize)
-                                     .Take(pageSize)
-                                     .ToListAsync();
+            var (items, totalCount) = await _unitOfWork.GiftRepository.GetByUserIdPagedAsync(userId, pageNumber, pageSize);
 
             return new PagedResponse<GiftListItemDto>
             {

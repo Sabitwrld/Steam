@@ -29,13 +29,11 @@ namespace Steam.Application.Services.Catalog.Implementations
 
         public async Task<PagedResponse<SystemRequirementsListItemDto>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.SystemRequirementsRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var entities = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.SystemRequirementsRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<SystemRequirementsListItemDto>
             {
-                Data = _mapper.Map<List<SystemRequirementsListItemDto>>(entities),
+                Data = _mapper.Map<List<SystemRequirementsListItemDto>>(items),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount

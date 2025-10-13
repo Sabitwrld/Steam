@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Discount;
 using Steam.Application.Exceptions;
@@ -62,9 +61,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<DiscountListItemDto>> GetAllDiscountsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.DiscountRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.DiscountRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<DiscountListItemDto>
             {

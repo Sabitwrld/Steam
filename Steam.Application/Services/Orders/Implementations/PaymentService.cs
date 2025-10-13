@@ -19,7 +19,7 @@ namespace Steam.Application.Services.Orders.Implementations
         private readonly IMapper _mapper;
 
         public PaymentService(
-            IUnitOfWork unitOfWork, 
+            IUnitOfWork unitOfWork,
             IUserLibraryService userLibraryService,
             ILicenseService licenseService,
             IMapper mapper)
@@ -124,9 +124,7 @@ namespace Steam.Application.Services.Orders.Implementations
 
         public async Task<PagedResponse<PaymentListItemDto>> GetAllPaymentsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.PaymentRepository.GetQuery(asNoTracking: true); // Dəyişdirildi
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.PaymentRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<PaymentListItemDto>
             {

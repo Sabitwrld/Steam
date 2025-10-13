@@ -29,7 +29,7 @@ namespace Steam.API.Controllers.Store
             return CreatedAtAction(nameof(GetVoucherById), new { id = result.Id }, result);
         }
 
-         // Bu endpoint istifadəçilər üçün olduğundan, avtorizasiyası dəyişdirildi və userId token-dən oxunur
+        // Bu endpoint istifadəçilər üçün olduğundan, avtorizasiyası dəyişdirildi və userId token-dən oxunur
         [HttpPost("redeem")]
         [Authorize] // Yalnız login olmuş istifadəçilər istifadə edə bilər
         [ProducesResponseType(typeof(VoucherReturnDto), 200)]
@@ -43,7 +43,7 @@ namespace Steam.API.Controllers.Store
             {
                 return Unauthorized(); // Token-də UserId yoxdursa, icazə verilməsin
             }
-            
+
             var result = await _service.RedeemVoucherAsync(code, userId);
             return Ok(result);
         }

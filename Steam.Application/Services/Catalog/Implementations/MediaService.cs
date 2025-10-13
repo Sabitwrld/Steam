@@ -31,13 +31,11 @@ namespace Steam.Application.Services.Catalog.Implementations
 
         public async Task<PagedResponse<MediaListItemDto>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.MediaRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var entities = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.MediaRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<MediaListItemDto>
             {
-                Data = _mapper.Map<List<MediaListItemDto>>(entities),
+                Data = _mapper.Map<List<MediaListItemDto>>(items),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount

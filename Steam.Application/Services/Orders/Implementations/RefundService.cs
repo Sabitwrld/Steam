@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Orders.Refund;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Exceptions;
@@ -64,9 +63,7 @@ namespace Steam.Application.Services.Orders.Implementations
 
         public async Task<PagedResponse<RefundListItemDto>> GetAllRefundsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.RefundRepository.GetQuery(asNoTracking: true); // Dəyişdirildi
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.RefundRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<RefundListItemDto>
             {

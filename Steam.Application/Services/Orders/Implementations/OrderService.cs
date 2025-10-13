@@ -69,16 +69,12 @@ namespace Steam.Application.Services.Orders.Implementations
             return _mapper.Map<OrderReturnDto>(order);
         }
 
-        public async Task<PagedResponse<OrderListItemDto>> GetOrdersByUserIdAsync(string userId, int pageNumber, int pageSize)
+        public async Task<PagedResponse<OrderListItemDto>> GetOrdersByUserIdAsync(
+            string userId, int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.OrderRepository.GetQuery(o => o.UserId == userId, asNoTracking: true) // Dəyişdirildi
-                                   .Include(o => o.Items);
-
-            var totalCount = await query.CountAsync();
-            var items = await query.OrderByDescending(o => o.OrderDate)
-                                     .Skip((pageNumber - 1) * pageSize)
-                                     .Take(pageSize)
-                                     .ToListAsync();
+            // Sorğu məntiqi Repository-yə daşındı
+            var (items, totalCount) = await _unitOfWork.OrderRepository
+                .GetByUserIdPagedAsync(userId, pageNumber, pageSize);
 
             return new PagedResponse<OrderListItemDto>
             {

@@ -11,6 +11,14 @@ namespace Steam.Infrastructure.Repositories.Implementations.Catalog
         {
 
         }
+
+        public async Task<(IEnumerable<Media> Items, int TotalCount)> GetAllPagedAsync(int pageNumber, int pageSize)
+        {
+            var query = _dbSet.AsNoTracking();
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (items, totalCount);
+        }
         public async Task<List<Media>> GetByApplicationIdAsync(int applicationId)
         {
             return await _dbSet

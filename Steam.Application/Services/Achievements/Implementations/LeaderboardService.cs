@@ -70,12 +70,8 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<LeaderboardListItemDto>> GetLeaderboardForApplicationAsync(int applicationId, int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.LeaderboardRepository.GetQuery(l => l.ApplicationId == applicationId, asNoTracking: true)
-                                   .Include(l => l.User)
-                                   .OrderByDescending(l => l.Score);
-
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.LeaderboardRepository
+                .GetByApplicationIdPagedAsync(applicationId, pageNumber, pageSize);
 
             var mappedItems = _mapper.Map<List<LeaderboardListItemDto>>(items);
 

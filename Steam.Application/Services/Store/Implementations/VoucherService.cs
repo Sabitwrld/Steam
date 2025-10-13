@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Voucher;
 using Steam.Application.Exceptions;
@@ -73,9 +72,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<VoucherListItemDto>> GetAllVouchersAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.VoucherRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.VoucherRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<VoucherListItemDto>
             {

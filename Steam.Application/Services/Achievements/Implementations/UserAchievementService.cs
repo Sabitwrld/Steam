@@ -61,14 +61,8 @@ namespace Steam.Application.Services.Achievements.Implementations
 
         public async Task<PagedResponse<UserAchievementListItemDto>> GetAchievementsForUserAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.UserAchievementRepository.GetQuery(ua => ua.UserId == userId, asNoTracking: true)
-                                   .Include(ua => ua.Achievement);
-
-            var totalCount = await query.CountAsync();
-            var items = await query.OrderByDescending(ua => ua.DateUnlocked)
-                                     .Skip((pageNumber - 1) * pageSize)
-                                     .Take(pageSize)
-                                     .ToListAsync();
+            var (items, totalCount) = await _unitOfWork.UserAchievementRepository
+                .GetByUserIdPagedAsync(userId, pageNumber, pageSize);
 
             return new PagedResponse<UserAchievementListItemDto>
             {

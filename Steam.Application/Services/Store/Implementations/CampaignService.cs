@@ -66,9 +66,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<CampaignListItemDto>> GetAllCampaignsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.CampaignRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.CampaignRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<CampaignListItemDto>
             {

@@ -29,13 +29,11 @@ namespace Steam.Application.Services.Catalog.Implementations
 
         public async Task<PagedResponse<TagListItemDto>> GetAllAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.TagRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var entities = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.TagRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<TagListItemDto>
             {
-                Data = _mapper.Map<List<TagListItemDto>>(entities),
+                Data = _mapper.Map<List<TagListItemDto>>(items),
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
                 TotalCount = totalCount

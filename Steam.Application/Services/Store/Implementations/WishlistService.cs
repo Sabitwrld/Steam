@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Wishlist;
 using Steam.Application.Exceptions;
@@ -11,7 +10,7 @@ namespace Steam.Application.Services.Store.Implementations
 {
     public class WishlistService : IWishlistService
     {
-        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public WishlistService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
@@ -66,9 +65,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<WishlistListItemDto>> GetAllWishlistsAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.WishlistRepository.GetQuery(asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var (items, totalCount) = await _unitOfWork.WishlistRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<WishlistListItemDto>
             {
@@ -81,12 +78,7 @@ namespace Steam.Application.Services.Store.Implementations
 
         public async Task<PagedResponse<WishlistListItemDto>> GetWishlistByUserIdAsync(string userId, int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.WishlistRepository.GetQuery(w => w.UserId == userId, asNoTracking: true);
-            var totalCount = await query.CountAsync();
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var (items, totalCount) = await _unitOfWork.WishlistRepository.GetByUserIdPagedAsync(userId, pageNumber, pageSize);
 
             return new PagedResponse<WishlistListItemDto>
             {

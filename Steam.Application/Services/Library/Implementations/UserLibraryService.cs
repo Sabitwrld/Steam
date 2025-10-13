@@ -96,14 +96,8 @@ namespace Steam.Application.Services.Library.Implementations
 
         public async Task<PagedResponse<UserLibraryListItemDto>> GetAllUserLibrariesAsync(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.UserLibraryRepository.GetQuery(asNoTracking: true)
-                                   .Include(ul => ul.Licenses);
-
-            var totalCount = await query.CountAsync();
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            // Sorğu məntiqi Repository-yə daşındı
+            var (items, totalCount) = await _unitOfWork.UserLibraryRepository.GetAllPagedAsync(pageNumber, pageSize);
 
             return new PagedResponse<UserLibraryListItemDto>
             {
