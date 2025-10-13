@@ -29,7 +29,7 @@ namespace Steam.API.Controllers.Store
         }
 
         [HttpPost("{id}/redeem")]
-        [Authorize] // Yalnız login olmuş istifadəçilər istifadə edə bilər
+        [Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]

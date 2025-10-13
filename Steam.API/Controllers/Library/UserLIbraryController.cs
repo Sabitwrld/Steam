@@ -19,8 +19,7 @@ namespace Steam.API.Controllers.Library
         }
 
         [HttpGet("user/{userId}")]
-        [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
-        [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")] // Yalnız Admin baxa bilər
         public async Task<ActionResult<UserLibraryReturnDto>> GetByUserId(string userId)
         {
             var result = await _userLibraryService.GetUserLibraryByUserIdAsync(userId);
@@ -40,9 +39,9 @@ namespace Steam.API.Controllers.Library
             return Ok(result);
         }
 
-        // This endpoint is more for admin purposes to see all libraries
+        // Bu endpoint admin paneli üçün faydalıdır
         [HttpGet]
-        [ProducesResponseType(typeof(PagedResponse<UserLibraryListItemDto>), 200)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<PagedResponse<UserLibraryListItemDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _userLibraryService.GetAllUserLibrariesAsync(pageNumber, pageSize);
@@ -50,8 +49,7 @@ namespace Steam.API.Controllers.Library
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
-        [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")] // Bu da adminə aid olmalıdır
         public async Task<ActionResult<UserLibraryReturnDto>> GetById(int id)
         {
             var result = await _userLibraryService.GetUserLibraryByIdAsync(id);
@@ -59,8 +57,7 @@ namespace Steam.API.Controllers.Library
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(UserLibraryReturnDto), 201)]
-        [ProducesResponseType(400)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserLibraryReturnDto>> Create([FromBody] UserLibraryCreateDto dto)
         {
             var result = await _userLibraryService.CreateUserLibraryAsync(dto);
@@ -68,8 +65,7 @@ namespace Steam.API.Controllers.Library
         }
 
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(UserLibraryReturnDto), 200)]
-        [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserLibraryReturnDto>> Update(int id, [FromBody] UserLibraryUpdateDto dto)
         {
             var result = await _userLibraryService.UpdateUserLibraryAsync(id, dto);
@@ -77,8 +73,7 @@ namespace Steam.API.Controllers.Library
         }
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _userLibraryService.DeleteUserLibraryAsync(id);
