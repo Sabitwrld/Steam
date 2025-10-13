@@ -1,4 +1,5 @@
-﻿using Steam.Infrastructure.Persistence;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations.Achievements;
 using Steam.Infrastructure.Repositories.Implementations.Catalog;
 using Steam.Infrastructure.Repositories.Implementations.Library;
@@ -88,6 +89,11 @@ namespace Steam.Infrastructure.Repositories.Implementations
         public async Task<int> CommitAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
 
         public async ValueTask DisposeAsync()

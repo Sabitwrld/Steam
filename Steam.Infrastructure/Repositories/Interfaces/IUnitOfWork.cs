@@ -1,4 +1,5 @@
-﻿using Steam.Infrastructure.Repositories.Interfaces.Achievements;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using Steam.Infrastructure.Repositories.Interfaces.Achievements;
 using Steam.Infrastructure.Repositories.Interfaces.Catalog;
 using Steam.Infrastructure.Repositories.Interfaces.Library;
 using Steam.Infrastructure.Repositories.Interfaces.Orders;
@@ -43,5 +44,7 @@ namespace Steam.Infrastructure.Repositories.Interfaces
         IUserAchievementRepository UserAchievementRepository { get; }
 
         Task<int> CommitAsync();
+
+        Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }
