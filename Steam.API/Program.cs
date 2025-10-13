@@ -210,7 +210,12 @@ namespace Steam.API
                 var userManager = services.GetRequiredService<UserManager<AppUser>>();
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                 var configuration = services.GetRequiredService<IConfiguration>();
+                var context = services.GetRequiredService<AppDbContext>(); // AppDbContext'i əldə edin
+
                 await DataSeeder.SeedRolesAndAdminAsync(userManager, roleManager, configuration);
+
+                // YENİ KODU BURAYA ƏLAVƏ EDİN
+                await AdditionalDataSeeder.SeedAdditionalDataAsync(context, userManager);
             }
 
             app.UseMiddleware<ExceptionMiddleware>();
