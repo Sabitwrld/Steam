@@ -1,11 +1,12 @@
 ﻿using FluentValidation;
 using Steam.Application.DTOs.Library.License;
+using Steam.Domain.Constants;
 
 namespace Steam.Application.Validators.Library.License
 {
     public class LicenseCreateValidator : AbstractValidator<LicenseCreateDto>
     {
-        private readonly string[] _allowedTypes = { "Lifetime", "Subscription" };
+        private readonly string[] _allowedTypes = { LicenseTypes.Lifetime, LicenseTypes.Subscription }; // DƏYİŞDİRİLDİ
 
         public LicenseCreateValidator()
         {
@@ -19,7 +20,7 @@ namespace Steam.Application.Validators.Library.License
 
             RuleFor(x => x.ExpirationDate)
                 .GreaterThan(DateTime.UtcNow).WithMessage("ExpirationDate must be in the future.")
-                .When(x => x.LicenseType == "Subscription"); // This rule only applies if it's a subscription
+                .When(x => x.LicenseType == LicenseTypes.Subscription); // DƏYİŞDİRİLDİ
         }
     }
 }

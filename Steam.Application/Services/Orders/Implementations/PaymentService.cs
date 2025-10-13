@@ -5,6 +5,7 @@ using Steam.Application.DTOs.Pagination;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.Library.Interfaces;
 using Steam.Application.Services.Orders.Interfaces;
+using Steam.Domain.Constants;
 using Steam.Domain.Entities.Orders;
 using Steam.Infrastructure.Repositories.Interfaces;
 
@@ -31,47 +32,39 @@ namespace Steam.Application.Services.Orders.Implementations
 
         public async Task<PaymentReturnDto> CreatePaymentAsync(PaymentCreateDto dto)
         {
-            // Transaction-un başlanğıcı
             var order = await _unitOfWork.OrderRepository.GetEntityAsync(
                 predicate: o => o.Id == dto.OrderId,
                 includes: new[] { (Func<IQueryable<Order>, IQueryable<Order>>)(q => q.Include(o => o.Items)) }
             );
-
             if (order == null)
                 throw new NotFoundException(nameof(Order), dto.OrderId);
 
-            if (order.Status != "Pending")
+            if (order.Status != OrderStatus.Pending) // DƏYİŞDİRİLDİ
                 throw new Exception("This order cannot be paid for.");
 
             var payment = _mapper.Map<Payment>(dto);
             payment.Amount = order.TotalPrice;
-            payment.Status = "Paid"; // Ödənişin uğurlu olduğunu simulyasiya edirik
+            payment.Status = "Paid"; // Bu status ödəniş sistemindən asılı olaraq dəyişə bilər, hələlik qalsın
             payment.PaymentDate = DateTime.UtcNow;
             payment.TransactionId = Guid.NewGuid().ToString();
 
-            // 1. Ödənişi contexte əlavə et
             await _unitOfWork.PaymentRepository.CreateAsync(payment);
 
-            // 2. Sifarişin statusunu yenilə
-            order.Status = "Completed";
+            order.Status = OrderStatus.Completed; // DƏYİŞDİRİLDİ
             _unitOfWork.OrderRepository.Update(order);
 
-            // 3. Oyunları istifadəçinin kitabxanasına əlavə et (bu servislər də artıq CommitAsync çağırmır)
             var userLibrary = await _userLibraryService.GetUserLibraryByUserIdAsync(order.UserId);
             foreach (var item in order.Items)
             {
                 var licenseDto = new DTOs.Library.License.LicenseCreateDto
                 {
                     ApplicationId = item.ApplicationId,
-                    LicenseType = "Lifetime"
+                    LicenseType = LicenseTypes.Lifetime // DƏYİŞDİRİLDİ
                 };
-                // AddLicenseAsync metodu özü Commit etmədiyi üçün burada təhlükəsizdir
                 await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
             }
 
-            // 4. Bütün dəyişiklikləri vahid tranzaksiya ilə yadda saxla
             await _unitOfWork.CommitAsync();
-            // Transaction-un sonu
 
             return _mapper.Map<PaymentReturnDto>(payment);
         }

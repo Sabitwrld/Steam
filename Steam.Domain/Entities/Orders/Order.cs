@@ -1,4 +1,5 @@
-﻿using Steam.Domain.Entities.Common;
+﻿using Steam.Domain.Constants;
+using Steam.Domain.Entities.Common;
 using Steam.Domain.Entities.Identity;
 
 namespace Steam.Domain.Entities.Orders
@@ -10,7 +11,7 @@ namespace Steam.Domain.Entities.Orders
 
         public DateTime OrderDate { get; set; }
         public decimal TotalPrice { get; set; }
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = OrderStatus.Pending; // DƏYİŞDİRİLDİ
 
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
         public Payment? Payment { get; set; }
