@@ -24,7 +24,7 @@ namespace Steam.API.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred.");
+                _logger.LogError(ex, "An unhandled exception has occurred. Exception Type: {ExceptionType}, Message: {ExceptionMessage}", ex.GetType().Name, ex.Message);
                 await HandleExceptionAsync(context, ex);
             }
         }

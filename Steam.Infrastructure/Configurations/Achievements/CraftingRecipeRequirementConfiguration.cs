@@ -4,6 +4,8 @@ using Steam.Domain.Entities.Achievements;
 
 namespace Steam.Infrastructure.Configurations.Achievements
 {
+    // Steam.Infrastructure/Configurations/Achievements/CraftingRecipeRequirementConfiguration.cs
+
     public class CraftingRecipeRequirementConfiguration : IEntityTypeConfiguration<CraftingRecipeRequirement>
     {
         public void Configure(EntityTypeBuilder<CraftingRecipeRequirement> builder)
@@ -12,14 +14,16 @@ namespace Steam.Infrastructure.Configurations.Achievements
             builder.HasKey(r => new { r.CraftingRecipeId, r.RequiredBadgeId });
 
             builder.HasOne(r => r.CraftingRecipe)
-                   .WithMany(cr => cr.Requirements)
-                   .HasForeignKey(r => r.CraftingRecipeId);
+                    .WithMany(cr => cr.Requirements)
+                    .HasForeignKey(r => r.CraftingRecipeId);
 
-            // Relationship to Badge
             builder.HasOne(r => r.RequiredBadge)
-                   .WithMany()
-                   .HasForeignKey(r => r.RequiredBadgeId)
-                   .OnDelete(DeleteBehavior.Restrict); // CHANGED FROM CASCADE (DEFAULT) TO RESTRICT
+                    .WithMany()
+                    .HasForeignKey(r => r.RequiredBadgeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+            // ADD THIS LINE TO FIX THE WARNING
+            builder.HasQueryFilter(r => !r.CraftingRecipe.IsDeleted);
         }
     }
 }

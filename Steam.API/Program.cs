@@ -228,7 +228,7 @@ namespace Steam.API
 
             app.MapControllers();
 
-            app.RunAsync();
+            app.Run();
         }
     }
 }
