@@ -19,6 +19,7 @@ namespace Steam.API.Controllers.Store
         }
 
         [HttpPost("send")]
+        [Authorize]
         [ProducesResponseType(typeof(GiftReturnDto), 201)]
         [ProducesResponseType(400)]
         public async Task<ActionResult<GiftReturnDto>> SendGift([FromBody] GiftCreateDto dto)
@@ -28,17 +29,19 @@ namespace Steam.API.Controllers.Store
         }
 
         [HttpPost("{id}/redeem")]
-        [Authorize] // Hədiyyəni qəbul etmək üçün login tələb olunur
+        [Authorize] // Yalnız login olmuş istifadəçilər istifadə edə bilər
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> RedeemGift(int id)
         {
+            // ReceiverId təhlükəsiz şəkildə token-dən oxunur
             var receiverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(receiverId))
             {
                 return Unauthorized();
             }
+
             await _service.RedeemGiftAsync(id, receiverId);
             return Ok("Gift successfully redeemed and added to your library.");
         }

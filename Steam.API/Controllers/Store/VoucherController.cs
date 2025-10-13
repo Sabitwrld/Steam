@@ -29,20 +29,21 @@ namespace Steam.API.Controllers.Store
             return CreatedAtAction(nameof(GetVoucherById), new { id = result.Id }, result);
         }
 
-        // Bu endpoint adi istifadəçilər üçün olmalıdır, ona görə də Admin rolundan çıxarılır
+         // Bu endpoint istifadəçilər üçün olduğundan, avtorizasiyası dəyişdirildi və userId token-dən oxunur
         [HttpPost("redeem")]
-        [Authorize] // Yalnız login olmuş istifadəçilər üçün
+        [Authorize] // Yalnız login olmuş istifadəçilər istifadə edə bilər
         [ProducesResponseType(typeof(VoucherReturnDto), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
         public async Task<ActionResult<VoucherReturnDto>> RedeemVoucher([FromQuery] string code)
         {
-            // UserId birbaşa token-dən götürülür, client-dən deyil.
+            // UserId təhlükəsiz şəkildə token-dən oxunur
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized();
+                return Unauthorized(); // Token-də UserId yoxdursa, icazə verilməsin
             }
+            
             var result = await _service.RedeemVoucherAsync(code, userId);
             return Ok(result);
         }
