@@ -22,13 +22,10 @@ namespace Steam.Infrastructure.Repositories.Interfaces
             bool isIgnoredDeleteBehaviour = false,
             params Func<IQueryable<T>, IQueryable<T>>[] includes);
 
-        // DƏYİŞİKLİK: saveChanges parametri ləğv edildi
         Task<T> CreateAsync(T entity);
 
-        // DƏYİŞİKLİK: saveChanges parametri ləğv edildi və sinxron oldu
         void Update(T entity);
 
-        // DƏYİŞİKLİK: saveChanges parametri ləğv edildi və sinxron oldu
         void Delete(T entity, bool hardDelete = false);
 
         Task<bool> IsExistsAsync(
@@ -36,13 +33,6 @@ namespace Steam.Infrastructure.Repositories.Interfaces
             bool asNoTracking = false,
             bool isIgnoredDeleteBehaviour = false);
 
-        IQueryable<T> GetQuery(
-            Expression<Func<T, bool>>? predicate = null,
-            bool asNoTracking = false,
-            bool asSplitQuery = false,
-            bool isIgnoredDeleteBehaviour = false,
-            params Func<IQueryable<T>, IQueryable<T>>[]? includes);
         Task<T?> GetByIdAsync(int id, params Func<IQueryable<T>, IQueryable<T>>[]? includes);
-
     }
 }

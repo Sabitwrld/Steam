@@ -38,34 +38,14 @@ namespace Steam.Application.Services.Catalog.Implementations
             return _mapper.Map<ApplicationCatalogReturnDto>(entity);
         }
 
-        public async Task<PagedResponse<ApplicationCatalogListItemDto>> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? genreId, int? tagId)
+        public async Task<PagedResponse<ApplicationCatalogListItemDto>> GetAllAsync(
+                   int pageNumber, int pageSize, string? searchTerm, int? genreId, int? tagId)
         {
-            var query = _unitOfWork.ApplicationCatalogRepository.GetQuery(asNoTracking: true);
+            // Addım 1: Bütün sorğu məntiqini ehtiva edən Repository metodunu çağırın
+            var (items, totalCount) = await _unitOfWork.ApplicationCatalogRepository.GetFilteredAsync(
+                pageNumber, pageSize, searchTerm, genreId, tagId);
 
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                query = query.Where(a =>
-                    a.Name.Contains(searchTerm) ||
-                    a.Developer.Contains(searchTerm) ||
-                    a.Publisher.Contains(searchTerm));
-            }
-
-            if (genreId.HasValue)
-            {
-                query = query.Where(a => a.Genres.Any(g => g.Id == genreId.Value));
-            }
-
-            if (tagId.HasValue)
-            {
-                query = query.Where(a => a.Tags.Any(t => t.Id == tagId.Value));
-            }
-
-            var totalCount = await query.CountAsync();
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
+            // Addım 2: Nəticəni DTO-ya çevirin və standart PagedResponse formatında geri qaytarın
             return new PagedResponse<ApplicationCatalogListItemDto>
             {
                 Data = _mapper.Map<List<ApplicationCatalogListItemDto>>(items),
@@ -74,7 +54,6 @@ namespace Steam.Application.Services.Catalog.Implementations
                 TotalCount = totalCount
             };
         }
-
         public async Task<ApplicationCatalogReturnDto> CreateAsync(ApplicationCatalogCreateDto dto)
         {
             var entity = _mapper.Map<ApplicationCatalog>(dto);

@@ -90,29 +90,6 @@ namespace Steam.Infrastructure.Repositories.Implementations
             return await query.ToListAsync();
         }
 
-        public IQueryable<T> GetQuery(
-            Expression<Func<T, bool>>? predicate = null,
-            bool asNoTracking = false,
-            bool asSplitQuery = false,
-            bool isIgnoredDeleteBehaviour = false,
-            params Func<IQueryable<T>, IQueryable<T>>[]? includes)
-        {
-            IQueryable<T> query = _dbSet;
-
-            if (includes != null)
-                foreach (var include in includes)
-                    query = include(query);
-
-            if (predicate != null)
-                query = query.Where(predicate);
-
-            if (asNoTracking) query = query.AsNoTracking();
-            if (asSplitQuery) query = query.AsSplitQuery();
-            if (isIgnoredDeleteBehaviour) query = query.IgnoreQueryFilters();
-
-            return query;
-        }
-
         public async Task<bool> IsExistsAsync(
             Expression<Func<T, bool>>? predicate = null,
             bool asNoTracking = false,
@@ -135,7 +112,6 @@ namespace Steam.Infrastructure.Repositories.Implementations
 
             return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
         }
-
     }
 }
 
