@@ -22,6 +22,7 @@ using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Application.Services.Store.Implementations;
 using Steam.Application.Services.Store.Interfaces;
 using Steam.Domain.Entities.Identity;
+using Steam.Domain.Settings;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
 using Steam.Infrastructure.Repositories.Implementations.Achievements;
@@ -53,6 +54,11 @@ namespace Steam.API
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
+            #region Register AuthSettings
+            var authSettings = new AuthSettings();
+            builder.Configuration.GetSection("AuthSettings").Bind(authSettings);
+            builder.Services.AddSingleton(authSettings);
+            #endregion
 
             #region Register Repositories
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
