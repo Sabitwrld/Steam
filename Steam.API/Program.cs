@@ -140,17 +140,18 @@ namespace Steam.API
                 };
             });
 
-            var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            var myAllowSpecificOrigins = "AllowSpecificOrigin";
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: myAllowSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.WithOrigins("http://localhost:3000")
-                                            .AllowAnyHeader()
-                                            .AllowAnyMethod();
-                                  });
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder =>
+                    {
+                        // React app-in ünvanını bura əlavə edirik
+                        builder.WithOrigins("http://localhost:5280", "https://localhost:5281", "http://localhost:5173")
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
             });
 
             builder.Services.AddControllers()
@@ -224,7 +225,7 @@ namespace Steam.API
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
