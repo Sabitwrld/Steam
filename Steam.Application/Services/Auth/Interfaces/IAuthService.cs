@@ -8,5 +8,12 @@ namespace Steam.Application.Services.Auth.Interfaces
         Task<AuthResponseDto> LoginAsync(LoginDto dto);
         Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto);
         Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+
+        /// <summary>
+        /// Token-ə əsasən cari istifadəçinin məlumatlarını qaytarır.
+        /// </summary>
+        /// <param name="userId">Token-dən oxunmuş istifadəçi ID-si.</param>
+        /// <returns>İstifadəçi məlumatlarını saxlayan DTO.</returns>
+        Task<UserLoginResponseDto> GetCurrentUserAsync(string userId);
     }
 }

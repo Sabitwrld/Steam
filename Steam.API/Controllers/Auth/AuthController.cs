@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Auth;
 using Steam.Application.Services.Auth.Interfaces;
+using System.Security.Claims;
 
 namespace Steam.API.Controllers.Auth
 {
@@ -29,9 +31,25 @@ namespace Steam.API.Controllers.Auth
             return Ok(result);
         }
 
+        // YENİ ENDPOINT
+        [Authorize] // Bu atribut sayəsində yalnız token göndərən istifadəçilər müraciət edə bilər
+        [HttpGet("me")]
+        public async Task<ActionResult<UserLoginResponseDto>> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+            var user = await _authService.GetCurrentUserAsync(userId);
+            return Ok(user);
+        }
+
+
         [HttpPost("forgot-password")]
         public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
+            // Dəyişiklik yoxdur
             var result = await _authService.ForgotPasswordAsync(dto);
             if (!result) return NotFound("User not found");
             return Ok("Password reset token sent to email");
@@ -40,6 +58,7 @@ namespace Steam.API.Controllers.Auth
         [HttpPost("reset-password")]
         public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
+            // Dəyişiklik yoxdur
             var result = await _authService.ResetPasswordAsync(dto);
             if (!result) return BadRequest("Invalid token or email");
             return Ok("Password reset successfully");
