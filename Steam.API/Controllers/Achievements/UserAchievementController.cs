@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Achievements.UserAchievement;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Services.Achievements.Interfaces;
+using Steam.Domain.Entities.Identity;
 
 namespace Steam.API.Controllers.Achievements
 {
@@ -10,10 +12,12 @@ namespace Steam.API.Controllers.Achievements
     public class UserAchievementController : ControllerBase
     {
         private readonly IUserAchievementService _service;
+        private readonly UserManager<AppUser> _userManager;
 
-        public UserAchievementController(IUserAchievementService service)
+        public UserAchievementController(IUserAchievementService service, UserManager<AppUser> userManager)
         {
             _service = service;
+            _userManager = userManager;
         }
 
         // Unlocks an achievement for a user
@@ -26,12 +30,19 @@ namespace Steam.API.Controllers.Achievements
             return Ok(result);
         }
 
-        // Gets all achievements for a specific user
-        [HttpGet("user/{userId}")]
+        // Gets all achievements for a specific user by their username
+        [HttpGet("user/{username}")] // Route artıq username qəbul edir
         [ProducesResponseType(typeof(PagedResponse<UserAchievementListItemDto>), 200)]
-        public async Task<ActionResult<PagedResponse<UserAchievementListItemDto>>> GetAchievementsForUser(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<PagedResponse<UserAchievementListItemDto>>> GetAchievementsForUser(string username, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetAchievementsForUserAsync(userId, pageNumber, pageSize);
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null)
+            {
+                return NotFound($"User with username '{username}' not found.");
+            }
+
+            var result = await _service.GetAchievementsForUserAsync(user.Id, pageNumber, pageSize);
             return Ok(result);
         }
 
