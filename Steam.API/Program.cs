@@ -25,7 +25,19 @@ using Steam.Domain.Entities.Identity;
 using Steam.Domain.Settings;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
+using Steam.Infrastructure.Repositories.Implementations.Achievements;
+using Steam.Infrastructure.Repositories.Implementations.Catalog;
+using Steam.Infrastructure.Repositories.Implementations.Library;
+using Steam.Infrastructure.Repositories.Implementations.Orders;
+using Steam.Infrastructure.Repositories.Implementations.ReviewsRating;
+using Steam.Infrastructure.Repositories.Implementations.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
+using Steam.Infrastructure.Repositories.Interfaces.Achievements;
+using Steam.Infrastructure.Repositories.Interfaces.Catalog;
+using Steam.Infrastructure.Repositories.Interfaces.Library;
+using Steam.Infrastructure.Repositories.Interfaces.Orders;
+using Steam.Infrastructure.Repositories.Interfaces.ReviewsRating;
+using Steam.Infrastructure.Repositories.Interfaces.Store;
 using System.Reflection;
 using System.Text;
 
@@ -155,7 +167,45 @@ namespace Steam.API
                 });
 
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                // Swagger sənədi üçün ümumi məlumatlar
+                options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Steam.API",
+                    Version = "v1",
+                    Description = "A RESTful API for a Steam-like platform"
+                });
+
+                // JWT (Bearer) təhlükəsizlik sxemini təyin et
+                options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n" +
+                                  "Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\n" +
+                                  "Example: \"Bearer 12345abcdef\""
+                });
+
+                // Bütün endpoint'lərin bu təhlükəsizlik sxemini istifadə edə biləcəyini təyin et
+                options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+            });
 
             var app = builder.Build();
 

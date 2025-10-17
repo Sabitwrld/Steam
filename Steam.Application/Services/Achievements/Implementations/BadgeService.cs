@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Achievements.Badge;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.Exceptions;

@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Orders.Cart;
 using Steam.Application.DTOs.Orders.CartItem;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.Orders.Interfaces;
 using Steam.Domain.Entities.Orders;
+using Steam.Domain.Entities.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
 
 namespace Steam.Application.Services.Orders.Implementations

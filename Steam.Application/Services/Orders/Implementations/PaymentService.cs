@@ -19,7 +19,7 @@ namespace Steam.Application.Services.Orders.Implementations
         private readonly IMapper _mapper;
 
         public PaymentService(
-            IUnitOfWork unitOfWork,
+            IUnitOfWork unitOfWork, 
             IUserLibraryService userLibraryService,
             ILicenseService licenseService,
             IMapper mapper)
