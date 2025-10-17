@@ -11,11 +11,11 @@ namespace Steam.Application.Services.Catalog.Implementations
 {
     public class MediaService : IMediaService
     {
-        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly FileService _fileService;
+        private readonly IFileService _fileService;
 
-        public MediaService(IUnitOfWork unitOfWork, IMapper mapper, FileService fileService) // Dəyişdirildi
+        public MediaService(IUnitOfWork unitOfWork, IMapper mapper, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -71,10 +71,11 @@ namespace Steam.Application.Services.Catalog.Implementations
             var entity = await _unitOfWork.MediaRepository.GetByIdAsync(id);
             if (entity == null) return false;
 
+            // Əvvəlcə faylı buluddan silirik
+            await _fileService.DeleteFile(entity.Url); // DƏYİŞDİRİLDİ
+
             _unitOfWork.MediaRepository.Delete(entity);
             await _unitOfWork.CommitAsync();
-
-            _fileService.DeleteFile(entity.Url); // Fiziksel faylı sil
 
             return true;
         }

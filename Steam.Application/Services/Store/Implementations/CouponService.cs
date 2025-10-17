@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.Store.Coupon;
 using Steam.Application.Exceptions;

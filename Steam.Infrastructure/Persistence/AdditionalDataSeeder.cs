@@ -5,11 +5,6 @@ using Steam.Domain.Entities.Catalog;
 using Steam.Domain.Entities.Identity;
 using Steam.Domain.Entities.ReviewsRating;
 using Steam.Domain.Entities.Store;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Steam.Infrastructure.Persistence
 {
@@ -19,7 +14,7 @@ namespace Steam.Infrastructure.Persistence
         {
             if (await context.Applications.AnyAsync())
             {
-                return;
+                return; // Məlumat bazası artıq toxumlanıb
             }
 
             // --- 1. JANRLAR VƏ ETİKETLƏR ---
@@ -133,7 +128,7 @@ namespace Steam.Infrastructure.Persistence
                 new PricePoint { ApplicationId = csgoGame.Id, Name = "Prime Status Upgrade", BasePrice = 14.99m }
             };
             await context.PricePoints.AddRangeAsync(pricePoints);
-            await context.SaveChangesAsync(); // PricePoint ID-ləri yaransın
+            await context.SaveChangesAsync();
 
             // --- 7. RƏYLƏR ---
             var reviews = new List<Review>
@@ -147,10 +142,8 @@ namespace Steam.Infrastructure.Persistence
             // --- 8. NAİLİYYƏTLƏR (ACHIEVEMENTS) ---
             var achievements = new List<Achievement>
             {
-                // Cyberpunk 2077
                 new Achievement { ApplicationId = cyberpunkGame.Id, Name = "The Fool", Description = "Become a mercenary.", Points = 10, IconUrl = "https://www.trueachievements.com/imagestore/0004128900/4128978.jpg"},
                 new Achievement { ApplicationId = cyberpunkGame.Id, Name = "The Lovers", Description = "Steal the Relic.", Points = 20, IconUrl = "https://www.trueachievements.com/imagestore/0004128900/4128979.jpg"},
-                // The Witcher 3
                 new Achievement { ApplicationId = witcherGame.Id, Name = "Lilac and Gooseberries", Description = "Find Yennefer of Vengerberg.", Points = 15, IconUrl = "https://www.trueachievements.com/imagestore/0001594900/1594982.jpg" },
                 new Achievement { ApplicationId = witcherGame.Id, Name = "Dendrologist", Description = "Acquire all the Abilities in one tree.", Points = 30, IconUrl = "https://www.trueachievements.com/imagestore/0001594900/1594998.jpg" }
             };
@@ -160,3 +153,4 @@ namespace Steam.Infrastructure.Persistence
         }
     }
 }
+

@@ -25,19 +25,7 @@ using Steam.Domain.Entities.Identity;
 using Steam.Domain.Settings;
 using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Implementations;
-using Steam.Infrastructure.Repositories.Implementations.Achievements;
-using Steam.Infrastructure.Repositories.Implementations.Catalog;
-using Steam.Infrastructure.Repositories.Implementations.Library;
-using Steam.Infrastructure.Repositories.Implementations.Orders;
-using Steam.Infrastructure.Repositories.Implementations.ReviewsRating;
-using Steam.Infrastructure.Repositories.Implementations.Store;
 using Steam.Infrastructure.Repositories.Interfaces;
-using Steam.Infrastructure.Repositories.Interfaces.Achievements;
-using Steam.Infrastructure.Repositories.Interfaces.Catalog;
-using Steam.Infrastructure.Repositories.Interfaces.Library;
-using Steam.Infrastructure.Repositories.Interfaces.Orders;
-using Steam.Infrastructure.Repositories.Interfaces.ReviewsRating;
-using Steam.Infrastructure.Repositories.Interfaces.Store;
 using System.Reflection;
 using System.Text;
 
@@ -65,7 +53,7 @@ namespace Steam.API
             #endregion
 
             #region Register Services
-            builder.Services.AddScoped<FileService>();
+            builder.Services.AddScoped<IFileService, CloudinaryService>();
             #region Catalog Services
             builder.Services.AddScoped<IApplicationCatalogService, ApplicationCatalogService>();
             builder.Services.AddScoped<IGenreService, GenreService>();
