@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Steam.Domain.Entities.Achievements;
 using Steam.Domain.Entities.Catalog;
 using Steam.Domain.Entities.Identity;
 using Steam.Domain.Entities.ReviewsRating;
@@ -16,20 +17,20 @@ namespace Steam.Infrastructure.Persistence
     {
         public static async Task SeedAdditionalDataAsync(AppDbContext context, UserManager<AppUser> userManager)
         {
-            // Yalnız məlumat bazası boş olduqda toxumlamanı həyata keçirin
             if (await context.Applications.AnyAsync())
             {
-                return; // Məlumat bazası artıq toxumlanıb
+                return;
             }
 
-            // Janrlar və Etiketlər
+            // --- 1. JANRLAR VƏ ETİKETLƏR ---
             var genres = new List<Genre>
             {
                 new Genre { Name = "Action" },
                 new Genre { Name = "Adventure" },
                 new Genre { Name = "RPG" },
                 new Genre { Name = "Strategy" },
-                new Genre { Name = "Simulation" }
+                new Genre { Name = "Simulation" },
+                new Genre { Name = "Horror" }
             };
             await context.Genres.AddRangeAsync(genres);
 
@@ -39,12 +40,14 @@ namespace Steam.Infrastructure.Persistence
                 new Tag { Name = "Singleplayer" },
                 new Tag { Name = "Co-op" },
                 new Tag { Name = "Open World" },
-                new Tag { Name = "FPS" }
+                new Tag { Name = "FPS" },
+                new Tag { Name = "Story Rich" },
+                new Tag { Name = "Cyberpunk" }
             };
             await context.Tags.AddRangeAsync(tags);
             await context.SaveChangesAsync();
 
-            // Nümunə İstifadəçilər
+            // --- 2. NÜMUNƏ İSTİFADƏÇİLƏR ---
             var user1 = new AppUser { FullName = "Ali Valiyev", UserName = "ali", Email = "ali@example.com", EmailConfirmed = true };
             var user2 = new AppUser { FullName = "Nigar Memmedova", UserName = "nigar", Email = "nigar@example.com", EmailConfirmed = true };
             await userManager.CreateAsync(user1, "Ali123!");
@@ -52,104 +55,107 @@ namespace Steam.Infrastructure.Persistence
             await userManager.AddToRoleAsync(user1, "User");
             await userManager.AddToRoleAsync(user2, "User");
 
-            // Oyunlar (ApplicationCatalog)
-            var applications = new List<ApplicationCatalog>
+            // --- 3. OYUNLAR (ApplicationCatalog) ---
+            var cyberpunkGame = new ApplicationCatalog
             {
-                new ApplicationCatalog
-                {
-                    Name = "Cyberpunk 2077",
-                    Description = "An open-world, action-adventure story set in Night City.",
-                    ReleaseDate = new DateTime(2020, 12, 10),
-                    Developer = "CD PROJEKT RED",
-                    Publisher = "CD PROJEKT RED",
-                    ApplicationType = "Game",
-                    Genres = new List<Genre> { genres[0], genres[2] }, // Action, RPG
-                    Tags = new List<Tag> { tags[1], tags[3] } // Singleplayer, Open World
-                },
-                new ApplicationCatalog
-                {
-                    Name = "The Witcher 3: Wild Hunt",
-                    Description = "A story-driven, next-generation open world role-playing game.",
-                    ReleaseDate = new DateTime(2015, 5, 19),
-                    Developer = "CD PROJEKT RED",
-                    Publisher = "CD PROJEKT RED",
-                    ApplicationType = "Game",
-                    Genres = new List<Genre> { genres[1], genres[2] }, // Adventure, RPG
-                    Tags = new List<Tag> { tags[1], tags[3] } // Singleplayer, Open World
-                },
-                new ApplicationCatalog
-                {
-                    Name = "Counter-Strike: Global Offensive",
-                    Description = "The classic competitive first-person shooter.",
-                    ReleaseDate = new DateTime(2012, 8, 21),
-                    Developer = "Valve",
-                    Publisher = "Valve",
-                    ApplicationType = "Game",
-                    Genres = new List<Genre> { genres[0] }, // Action
-                    Tags = new List<Tag> { tags[0], tags[4] } // Multiplayer, FPS
-                }
+                Name = "Cyberpunk 2077",
+                Description = "An open-world, action-adventure RPG set in the metropolis of Night City, where you play as a cyberpunk mercenary wrapped up in a do-or-die fight for survival.",
+                ReleaseDate = new DateTime(2020, 12, 10),
+                Developer = "CD PROJEKT RED",
+                Publisher = "CD PROJEKT RED",
+                ApplicationType = "Game",
+                Genres = new List<Genre> { genres.Single(g => g.Name == "Action"), genres.Single(g => g.Name == "RPG") },
+                Tags = new List<Tag> { tags.Single(t => t.Name == "Singleplayer"), tags.Single(t => t.Name == "Open World"), tags.Single(t => t.Name == "Cyberpunk") }
             };
-            await context.Applications.AddRangeAsync(applications);
+
+            var witcherGame = new ApplicationCatalog
+            {
+                Name = "The Witcher 3: Wild Hunt",
+                Description = "A story-driven, next-generation open world role-playing game, set in a visually stunning fantasy universe full of meaningful choices and impactful consequences.",
+                ReleaseDate = new DateTime(2015, 5, 19),
+                Developer = "CD PROJEKT RED",
+                Publisher = "CD PROJEKT RED",
+                ApplicationType = "Game",
+                Genres = new List<Genre> { genres.Single(g => g.Name == "Adventure"), genres.Single(g => g.Name == "RPG") },
+                Tags = new List<Tag> { tags.Single(t => t.Name == "Singleplayer"), tags.Single(t => t.Name == "Open World"), tags.Single(t => t.Name == "Story Rich") }
+            };
+
+            var csgoGame = new ApplicationCatalog
+            {
+                Name = "Counter-Strike 2",
+                Description = "For over two decades, millions of players globally have battled it out in a game that requires skill, strategy, and teamwork. Now the next chapter in the CS story is about to begin. This is Counter-Strike 2.",
+                ReleaseDate = new DateTime(2023, 9, 27),
+                Developer = "Valve",
+                Publisher = "Valve",
+                ApplicationType = "Game",
+                Genres = new List<Genre> { genres.Single(g => g.Name == "Action") },
+                Tags = new List<Tag> { tags.Single(t => t.Name == "Multiplayer"), tags.Single(t => t.Name == "FPS") }
+            };
+
+            await context.Applications.AddRangeAsync(cyberpunkGame, witcherGame, csgoGame);
             await context.SaveChangesAsync();
 
-            // Media və Sistem Tələbləri
-            var media = new List<Media>
+            // --- 4. MEDIA (ŞƏKİL VƏ VİDEOLAR) ---
+            var mediaItems = new List<Media>
             {
-                new Media { ApplicationId = applications[0].Id, Url = "/uploads/cyberpunk1.jpg", MediaType = "Image", Order = 1 },
-                new Media { ApplicationId = applications[1].Id, Url = "/uploads/witcher3.jpg", MediaType = "Image", Order = 1 },
-                new Media { ApplicationId = applications[2].Id, Url = "/uploads/csgo.jpg", MediaType = "Image", Order = 1 }
+                // Cyberpunk 2077 Media
+                new Media { ApplicationId = cyberpunkGame.Id, Url = "https://cdn.gracza.pl/i_gp/h/22/346431843.jpg", MediaType = "Image", Order = 1 },
+                new Media { ApplicationId = cyberpunkGame.Id, Url = "https://www.youtube.com/watch?v=8X2kIfS6fb8", MediaType = "Video", Order = 2 },
+                new Media { ApplicationId = cyberpunkGame.Id, Url = "https://www.cyberpunk.net/build/images/media/screenshots/screenshot-1-en-a8080f63.jpg", MediaType = "Image", Order = 3 },
+                new Media { ApplicationId = cyberpunkGame.Id, Url = "https://www.cyberpunk.net/build/images/media/screenshots/screenshot-2-en-fd066a3c.jpg", MediaType = "Image", Order = 4 },
+                
+                // The Witcher 3 Media
+                new Media { ApplicationId = witcherGame.Id, Url = "https://cdn.gracza.pl/i_gp/h/13/353401531.jpg", MediaType = "Image", Order = 1 },
+                new Media { ApplicationId = witcherGame.Id, Url = "https://www.youtube.com/watch?v=c0i88t0Kacs", MediaType = "Video", Order = 2 },
+                new Media { ApplicationId = witcherGame.Id, Url = "https://www.thewitcher.com/en/witcher3/P/media/--preset-standard/assets/images/297298642a8b341f71a9f0e154f85e50529d892d-2200x1238.jpg", MediaType = "Image", Order = 3 },
+               
+                // Counter-Strike 2 Media
+                new Media { ApplicationId = csgoGame.Id, Url = "https://cdn.akamai.steamstatic.com/apps/csgo/images/csgo_react/social/cs2.jpg", MediaType = "Image", Order = 1 },
+                new Media { ApplicationId = csgoGame.Id, Url = "https://www.youtube.com/watch?v=c80_weOc_1k", MediaType = "Video", Order = 2 }
             };
-            await context.Media.AddRangeAsync(media);
+            await context.Media.AddRangeAsync(mediaItems);
 
+            // --- 5. SİSTEM TƏLƏBLƏRİ ---
             var systemRequirements = new List<SystemRequirements>
             {
-                new SystemRequirements { ApplicationId = applications[0].Id, RequirementType = "Minimum", OS = "Windows 10", CPU = "Intel Core i5-3570K", GPU = "NVIDIA GeForce GTX 780", RAM = "8 GB", Storage = "70 GB" },
-                new SystemRequirements { ApplicationId = applications[1].Id, RequirementType = "Minimum", OS = "Windows 7", CPU = "Intel CPU Core i5-2500K 3.3GHz", GPU = "Nvidia GPU GeForce GTX 660", RAM = "6 GB", Storage = "35 GB" }
+                new SystemRequirements { ApplicationId = cyberpunkGame.Id, RequirementType = "Minimum", OS = "Windows 10", CPU = "Intel Core i7-6700 or AMD Ryzen 5 1600", GPU = "NVIDIA GeForce GTX 1060 6GB", RAM = "12 GB", Storage = "70 GB SSD" },
+                new SystemRequirements { ApplicationId = cyberpunkGame.Id, RequirementType = "Recommended", OS = "Windows 10", CPU = "Intel Core i7-12700 or AMD Ryzen 7 7800X3D", GPU = "NVIDIA GeForce RTX 2060 SUPER", RAM = "16 GB", Storage = "70 GB SSD" },
+                new SystemRequirements { ApplicationId = witcherGame.Id, RequirementType = "Minimum", OS = "Windows 7/8 (8.1) 64-bit", CPU = "Intel CPU Core i5-2500K 3.3GHz", GPU = "Nvidia GPU GeForce GTX 660", RAM = "6 GB", Storage = "35 GB" },
+                new SystemRequirements { ApplicationId = csgoGame.Id, RequirementType = "Minimum", OS = "Windows 10", CPU = "Intel® Core™ i5 750 or higher", GPU = "Video card must be 1 GB or more", RAM = "8 GB", Storage = "85 GB" },
             };
             await context.SystemRequirements.AddRangeAsync(systemRequirements);
-            await context.SaveChangesAsync();
 
-            // Qiymət nöqtələri və Regional Qiymətlər
+            // --- 6. QİYMƏTLƏR ---
             var pricePoints = new List<PricePoint>
             {
-                new PricePoint { ApplicationId = applications[0].Id, Name = "Standard Edition", BasePrice = 59.99m },
-                new PricePoint { ApplicationId = applications[1].Id, Name = "Standard Edition", BasePrice = 39.99m },
-                new PricePoint { ApplicationId = applications[2].Id, Name = "Standard Edition", BasePrice = 14.99m }
+                new PricePoint { ApplicationId = cyberpunkGame.Id, Name = "Standard Edition", BasePrice = 59.99m },
+                new PricePoint { ApplicationId = witcherGame.Id, Name = "Game of the Year Edition", BasePrice = 49.99m },
+                new PricePoint { ApplicationId = csgoGame.Id, Name = "Prime Status Upgrade", BasePrice = 14.99m }
             };
             await context.PricePoints.AddRangeAsync(pricePoints);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); // PricePoint ID-ləri yaransın
 
-            var regionalPrices = new List<RegionalPrice>
-            {
-                new RegionalPrice { PricePointId = pricePoints[0].Id, Currency = "USD", Amount = 59.99m },
-                new RegionalPrice { PricePointId = pricePoints[0].Id, Currency = "AZN", Amount = 102.00m },
-                new RegionalPrice { PricePointId = pricePoints[1].Id, Currency = "USD", Amount = 39.99m },
-                new RegionalPrice { PricePointId = pricePoints[1].Id, Currency = "AZN", Amount = 68.00m },
-            };
-            await context.RegionalPrices.AddRangeAsync(regionalPrices);
-            await context.SaveChangesAsync();
-
-
-            // Rəylər (Reviews)
+            // --- 7. RƏYLƏR ---
             var reviews = new List<Review>
             {
-                new Review { UserId = user1.Id, ApplicationId = applications[0].Id, Title = "Amazing Game!", Content = "Night City is a breathtaking world to explore. The story is immersive and the characters are unforgettable. A must-play for any RPG fan.", IsRecommended = true, HelpfulCount = 15, FunnyCount = 2 },
-                new Review { UserId = user2.Id, ApplicationId = applications[1].Id, Title = "A Masterpiece", Content = "The Witcher 3 is one of the best games I have ever played. The world is huge and full of interesting quests. The story is simply incredible.", IsRecommended = true, HelpfulCount = 25 }
+                new Review { UserId = user1.Id, ApplicationId = cyberpunkGame.Id, Title = "Amazing Game!", Content = "Night City is a breathtaking world to explore. The story is immersive and the characters are unforgettable. A must-play for any RPG fan.", IsRecommended = true, HelpfulCount = 15, FunnyCount = 2 },
+                new Review { UserId = user2.Id, ApplicationId = witcherGame.Id, Title = "A Masterpiece", Content = "The Witcher 3 is one of the best games I have ever played. The world is huge and full of interesting quests. The story is simply incredible.", IsRecommended = true, HelpfulCount = 25 },
+                new Review { UserId = user1.Id, ApplicationId = witcherGame.Id, Title = "Can't stop playing", Content = "Even years after its release, this game is still better than most new titles. The level of detail is just insane.", IsRecommended = true, HelpfulCount = 5 },
             };
             await context.Reviews.AddRangeAsync(reviews);
-            await context.SaveChangesAsync();
 
-            // Kampaniyalar və Endirimlər
-            var summerSale = new Campaign { Name = "Summer Sale 2024", Description = "Big discounts on great games!", StartDate = new DateTime(2024, 6, 20), EndDate = new DateTime(2024, 7, 10) };
-            await context.Campaigns.AddAsync(summerSale);
-            await context.SaveChangesAsync();
-
-            var discounts = new List<Discount>
+            // --- 8. NAİLİYYƏTLƏR (ACHIEVEMENTS) ---
+            var achievements = new List<Achievement>
             {
-                new Discount { ApplicationId = applications[0].Id, CampaignId = summerSale.Id, Percent = 50, StartDate = summerSale.StartDate, EndDate = summerSale.EndDate },
-                new Discount { ApplicationId = applications[1].Id, Percent = 75, StartDate = DateTime.UtcNow.AddDays(-5), EndDate = DateTime.UtcNow.AddDays(5) }
+                // Cyberpunk 2077
+                new Achievement { ApplicationId = cyberpunkGame.Id, Name = "The Fool", Description = "Become a mercenary.", Points = 10, IconUrl = "https://www.trueachievements.com/imagestore/0004128900/4128978.jpg"},
+                new Achievement { ApplicationId = cyberpunkGame.Id, Name = "The Lovers", Description = "Steal the Relic.", Points = 20, IconUrl = "https://www.trueachievements.com/imagestore/0004128900/4128979.jpg"},
+                // The Witcher 3
+                new Achievement { ApplicationId = witcherGame.Id, Name = "Lilac and Gooseberries", Description = "Find Yennefer of Vengerberg.", Points = 15, IconUrl = "https://www.trueachievements.com/imagestore/0001594900/1594982.jpg" },
+                new Achievement { ApplicationId = witcherGame.Id, Name = "Dendrologist", Description = "Acquire all the Abilities in one tree.", Points = 30, IconUrl = "https://www.trueachievements.com/imagestore/0001594900/1594998.jpg" }
             };
-            await context.Discounts.AddRangeAsync(discounts);
+            await context.Set<Achievement>().AddRangeAsync(achievements);
+
             await context.SaveChangesAsync();
         }
     }

@@ -13,11 +13,6 @@ namespace Steam.Infrastructure.Persistence
     {
         public AppDbContext CreateDbContext(string[] args)
         {
-            // Bu metod yalnız 'update-database' və 'add-migration' üçün işləyir.
-            // Bu səbəbdən connection string-i birbaşa burada təyin etmək daha etibarlıdır.
-
-            // DİQQƏT: Connection string-i öz lokal bazanıza uyğun olaraq buraya yazın.
-            // Bu məlumatı appsettings.json faylından kopyalaya bilərsiniz.
             var connectionString = "Server=MSI\\SQLEXPRESS03;Database=SteamDB;Trusted_Connection=True;TrustServerCertificate=True";
 
             var builder = new DbContextOptionsBuilder<AppDbContext>();
