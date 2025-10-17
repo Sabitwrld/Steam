@@ -123,5 +123,12 @@ namespace Steam.Application.Services.Auth.Implementations
                 Roles = roles.ToList()
             };
         }
+        public async Task LogoutAsync()
+        {
+            // Bu metod ASP.NET Core Identity-nin daxili autentikasiya cookie-lərini təmizləyir.
+            // JWT ilə birbaşa əlaqəsi olmasa da, təhlükəsiz çıxışı təmin etmək üçün yaxşı təcrübədir.
+            // Əsas məntiq frontend-də token-in silinməsidir.
+            await _signInManager.SignOutAsync();
+        }
     }
 }

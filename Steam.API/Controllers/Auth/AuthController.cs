@@ -63,5 +63,13 @@ namespace Steam.API.Controllers.Auth
             if (!result) return BadRequest("Invalid token or email");
             return Ok("Password reset successfully");
         }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await _authService.LogoutAsync();
+            return Ok(new { message = "Logout successful" });
+        }
     }
 }
