@@ -69,9 +69,8 @@ namespace Steam.Application.Services.Orders.Implementations
                     var licenseDto = new DTOs.Library.License.LicenseCreateDto
                     {
                         ApplicationId = item.ApplicationId,
-                        LicenseType = LicenseTypes.Lifetime
+                        LicenseType = LicenseTypes.Lifetime // <-- Gördüyünüz kimi, burada həmişə Lifetime təyin edilir.
                     };
-                    // LicenseService içində CommitAsync çağırılmır, bu vacibdir!
                     await _licenseService.AddLicenseAsync(userLibrary.Id, licenseDto);
                 }
 

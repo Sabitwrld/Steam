@@ -50,17 +50,20 @@ namespace Steam.Application.Services.Orders.Implementations
 
             if (existingItem != null)
             {
-                existingItem.Quantity += dto.Quantity > 0 ? dto.Quantity : 1;
-                _unitOfWork.CartItemRepository.Update(existingItem); // Dəyişdirildi
-            }
-            else
-            {
-                var newCartItem = _mapper.Map<CartItem>(dto);
-                newCartItem.CartId = cart.Id;
-                await _unitOfWork.CartItemRepository.CreateAsync(newCartItem); // Dəyişdirildi
+                // Artıq səbətdə varsa, xəta veririk.
+                throw new Exception("This application is already in your cart.");
             }
 
-            await _unitOfWork.CommitAsync(); // Dəyişdirildi
+            // Yeni məhsulu Quantity = 1 olaraq yaradırıq.
+            var newCartItem = new CartItem
+            {
+                ApplicationId = dto.ApplicationId,
+                Quantity = 1, // Həmişə 1 olacaq!
+                CartId = cart.Id
+            };
+            await _unitOfWork.CartItemRepository.CreateAsync(newCartItem);
+
+            await _unitOfWork.CommitAsync();
             return await GetCartByUserIdAsync(userId);
         }
 
