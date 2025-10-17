@@ -140,12 +140,17 @@ namespace Steam.API
                 };
             });
 
+            var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
             builder.Services.AddCors(options =>
             {
-                options.AddDefaultPolicy(policy =>
-                {
-                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-                });
+                options.AddPolicy(name: myAllowSpecificOrigins,
+                                  policy =>
+                                  {
+                                      policy.WithOrigins("http://localhost:3000")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                                  });
             });
 
             builder.Services.AddControllers()
@@ -214,7 +219,7 @@ namespace Steam.API
 
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseStaticFiles();
-            app.UseCors();
+            app.UseCors(myAllowSpecificOrigins);
 
             app.UseSwagger();
             app.UseSwaggerUI();

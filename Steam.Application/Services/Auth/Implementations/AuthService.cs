@@ -44,6 +44,7 @@ namespace Steam.Application.Services.Auth.Implementations
 
             return new AuthResponseDto
             {
+                Id = user.Id,
                 Token = token,
                 Expiration = DateTime.UtcNow.AddHours(1),
                 FullName = user.FullName,

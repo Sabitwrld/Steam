@@ -35,4 +35,8 @@
     <ProjectReference Include="..\Steam.Infrastructure\Steam.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>
