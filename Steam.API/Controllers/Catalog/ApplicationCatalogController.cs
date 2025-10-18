@@ -6,6 +6,7 @@ using Steam.Application.DTOs.Catalog.Media;
 using Steam.Application.DTOs.Catalog.SystemRequirements;
 using Steam.Application.DTOs.Catalog.Tag;
 using Steam.Application.DTOs.Pagination;
+using Steam.Application.Services.Catalog.Implementations;
 using Steam.Application.Services.Catalog.Interfaces;
 
 namespace Steam.API.Controllers.Catalog
@@ -21,7 +22,32 @@ namespace Steam.API.Controllers.Catalog
             _service = service;
         }
 
-        [HttpGet]
+        // Oyunların/Tətbiqlərin Siyahısı: { "1": {...}, "2": {...} }
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("all")] // "api/catalog/all"
+        public async Task<IActionResult> GetApplications()
+        {
+            // 1. Servisdən bütün məlumatları çəkmək üçün GetAllAsync metoduna
+            // int.MaxValue ötürülür.
+            var pagedApplications = await _service.GetAllAsync(
+                pageNumber: 1,
+                pageSize: int.MaxValue, // Bütün rekordları çəkmək üçün
+                searchTerm: null,
+                genreId: null,
+                tagId: null);
+
+            // 2. PagedResponse-dan məlumat siyahısı (Data) çıxarılır
+            var applications = pagedApplications.Data;
+
+            // 3. List<DTO> obyektini sizin istədiyiniz format olan Dictionary<ID, DTO> formatına çevirir
+            var indexedResponse = applications.ToDictionary(app => app.Id, app => app);
+
+            // 4. İndekslənmiş JSON obyekti qaytarılır: { "1": {...}, "2": {...} }
+            return Ok(indexedResponse);
+        }
+
+        // Səhifələnmiş Siyahı (PagedResponse formatı standart olaraq saxlanıldı)
+        [HttpGet] // "api/catalog?pageNumber=..."
         public async Task<ActionResult<PagedResponse<ApplicationCatalogListItemDto>>> GetAll(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -33,11 +59,24 @@ namespace Steam.API.Controllers.Catalog
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApplicationCatalogReturnDto>> GetById(int id)
+        // Tək Oyun: { "5": {...} }
+        [HttpGet("{id}")] // "api/catalog/5"
+        public async Task<ActionResult<Dictionary<int, ApplicationCatalogReturnDto>>> GetById(int id)
         {
             var result = await _service.GetByIdAsync(id);
-            return Ok(result);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            // Tək DTO-nu ID ilə indekslənmiş obyektdə bükür
+            var indexedResponse = new Dictionary<int, ApplicationCatalogReturnDto>
+            {
+                { result.Id, result }
+            };
+
+            return Ok(indexedResponse);
         }
 
         [HttpPost]
@@ -65,35 +104,40 @@ namespace Steam.API.Controllers.Catalog
             return NoContent();
         }
 
+        // Janrlar: { "1": {...}, "2": {...} }
         [HttpGet("{id}/genres")]
-        public async Task<ActionResult<List<GenreListItemDto>>> GetGenres(int id)
+        public async Task<ActionResult<Dictionary<int, GenreListItemDto>>> GetGenres(int id)
         {
             var genres = await _service.GetGenresByApplicationIdAsync(id);
-            return Ok(genres);
+            var indexedResponse = genres.ToDictionary(g => g.Id, g => g);
+            return Ok(indexedResponse);
         }
 
-        // YENİ ENDPOINT: Teqlər üçün
+        // Teqlər: { "1": {...}, "2": {...} }
         [HttpGet("{id}/tags")]
-        public async Task<ActionResult<List<TagListItemDto>>> GetTags(int id)
+        public async Task<ActionResult<Dictionary<int, TagListItemDto>>> GetTags(int id)
         {
             var tags = await _service.GetTagsByApplicationIdAsync(id);
-            return Ok(tags);
+            var indexedResponse = tags.ToDictionary(t => t.Id, t => t);
+            return Ok(indexedResponse);
         }
 
-        // YENİ ENDPOINT: Media üçün
+        // Mediya: { "1": {...}, "2": {...} }
         [HttpGet("{id}/media")]
-        public async Task<ActionResult<List<MediaListItemDto>>> GetMedia(int id)
+        public async Task<ActionResult<Dictionary<int, MediaListItemDto>>> GetMedia(int id)
         {
             var media = await _service.GetMediaByApplicationIdAsync(id);
-            return Ok(media);
+            var indexedResponse = media.ToDictionary(m => m.Id, m => m);
+            return Ok(indexedResponse);
         }
 
-        // YENİ ENDPOINT: Sistem tələbləri üçün
+        // Sistem tələbləri: { "1": {...}, "2": {...} }
         [HttpGet("{id}/system-requirements")]
-        public async Task<ActionResult<List<SystemRequirementsListItemDto>>> GetSystemRequirements(int id)
+        public async Task<ActionResult<Dictionary<int, SystemRequirementsListItemDto>>> GetSystemRequirements(int id)
         {
             var requirements = await _service.GetSystemRequirementsByApplicationIdAsync(id);
-            return Ok(requirements);
+            var indexedResponse = requirements.ToDictionary(r => r.Id, r => r);
+            return Ok(indexedResponse);
         }
     }
 

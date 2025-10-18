@@ -31,8 +31,8 @@ namespace Steam.API.Controllers.Auth
             return Ok(result);
         }
 
-        // YENİ ENDPOINT
-        [Authorize] // Bu atribut sayəsində yalnız token göndərən istifadəçilər müraciət edə bilər
+        // Cari İstifadəçi: {id: 1, username: "..."} (Dəyişiklik yoxdur, DTO birbaşa qaytarılır)
+        [Authorize]
         [HttpGet("me")]
         public async Task<ActionResult<UserLoginResponseDto>> GetCurrentUser()
         {
@@ -41,6 +41,7 @@ namespace Steam.API.Controllers.Auth
             {
                 return Unauthorized();
             }
+            // UserLoginResponseDto birbaşa qaytarılır, bu da istədiyiniz formatdır.
             var user = await _authService.GetCurrentUserAsync(userId);
             return Ok(user);
         }
@@ -49,7 +50,6 @@ namespace Steam.API.Controllers.Auth
         [HttpPost("forgot-password")]
         public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
-            // Dəyişiklik yoxdur
             var result = await _authService.ForgotPasswordAsync(dto);
             if (!result) return NotFound("User not found");
             return Ok("Password reset token sent to email");
@@ -58,7 +58,6 @@ namespace Steam.API.Controllers.Auth
         [HttpPost("reset-password")]
         public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
-            // Dəyişiklik yoxdur
             var result = await _authService.ResetPasswordAsync(dto);
             if (!result) return BadRequest("Invalid token or email");
             return Ok("Password reset successfully");
