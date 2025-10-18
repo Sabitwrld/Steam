@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.ReviewsRating.Review;
@@ -6,6 +7,7 @@ using Steam.Application.Exceptions;
 using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Domain.Entities.ReviewsRating;
 using Steam.Infrastructure.Repositories.Interfaces;
+using System.Linq.Expressions;
 
 namespace Steam.Application.Services.ReviewsRating.Implementations
 {
@@ -13,11 +15,13 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
     {
         private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper) // Dəyişdirildi
+        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ReviewReturnDto> CreateReviewAsync(ReviewCreateDto dto)
@@ -35,6 +39,7 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
             return await GetReviewByIdAsync(entity.Id);
         }
 
+        // UpdateReviewAsync metodu yenilənir
         public async Task<ReviewReturnDto> UpdateReviewAsync(int reviewId, string userId, ReviewUpdateDto dto)
         {
             var entity = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
@@ -42,10 +47,20 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
             if (entity == null)
                 throw new NotFoundException(nameof(Review), reviewId);
 
-            if (entity.UserId != userId)
+            var isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
+
+            // Əgər istifadəçi admin deyilsə və rəyin sahibi deyilsə, xəta ver
+            if (!isAdmin && entity.UserId != userId)
                 throw new Exception("You are not authorized to edit this review.");
 
             _mapper.Map(dto, entity);
+
+            // Adminin rəyi təsdiqləməsi üçün əlavə məntiq (IsApproved dəyərini DTO-dan alaraq)
+            if (isAdmin && dto.IsApproved.HasValue)
+            {
+                entity.IsApproved = dto.IsApproved.Value;
+            }
+
             _unitOfWork.ReviewRepository.Update(entity);
             await _unitOfWork.CommitAsync();
 
@@ -116,6 +131,26 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
             review.FunnyCount++;
             _unitOfWork.ReviewRepository.Update(review);
             await _unitOfWork.CommitAsync();
+        }
+
+        public async Task<PagedResponse<ReviewListItemDto>> GetAllReviewsAsync(int pageNumber, int pageSize, bool? isApproved = null)
+        {
+            Expression<Func<Review, bool>>? predicate = null; // Nullable olmalıdır
+            if (isApproved.HasValue)
+            {
+                predicate = r => r.IsApproved == isApproved.Value;
+            }
+
+            var (items, totalCount) = await _unitOfWork.ReviewRepository.GetAllPagedAsync(pageNumber, pageSize, predicate,
+                includes: new Func<IQueryable<Review>, IQueryable<Review>>[] { q => q.Include(r => r.User) });
+
+            return new PagedResponse<ReviewListItemDto>
+            {
+                Data = _mapper.Map<List<ReviewListItemDto>>(items),
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
     }
 }

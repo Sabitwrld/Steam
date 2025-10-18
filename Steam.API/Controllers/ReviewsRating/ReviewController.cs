@@ -23,6 +23,20 @@ namespace Steam.API.Controllers.ReviewsRating
             return Ok(result);
         }
 
+        // ... digər endpointlər ...
+
+        /// <summary>
+        /// Gets all reviews for the admin panel with pagination. (Admin only)
+        /// </summary>
+        [HttpGet("paged")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(PagedResponse<ReviewListItemDto>), 200)]
+        public async Task<ActionResult<PagedResponse<ReviewListItemDto>>> GetAllReviews([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] bool? isApproved = null)
+        {
+            var result = await _service.GetAllReviewsAsync(pageNumber, pageSize, isApproved);
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ReviewReturnDto>> GetReviewById(int id)
         {
@@ -48,10 +62,11 @@ namespace Steam.API.Controllers.ReviewsRating
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "User,Admin")] // Dəyişdirildi
         public async Task<ActionResult<ReviewReturnDto>> UpdateMyReview(int id, [FromBody] ReviewUpdateDto dto)
         {
             var userId = GetCurrentUserId();
+            // Admin rolundakı istifadəçi üçün userId boş ola bilər, bu halda servis yoxlamanı özü edəcək
             var result = await _service.UpdateReviewAsync(id, userId, dto);
             return Ok(result);
         }

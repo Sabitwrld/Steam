@@ -9,5 +9,7 @@ namespace Steam.Application.Services.Orders.Interfaces
         Task<OrderReturnDto> GetOrderByIdAsync(int orderId);
         Task<PagedResponse<OrderListItemDto>> GetOrdersByUserIdAsync(string userId, int pageNumber, int pageSize); // CHANGED
         Task<OrderReturnDto> UpdateOrderStatusAsync(int orderId, string status);
+
+        Task<PagedResponse<OrderListItemForAdminDto>> GetAllOrdersForAdminAsync(int pageNumber, int pageSize);
     }
 }

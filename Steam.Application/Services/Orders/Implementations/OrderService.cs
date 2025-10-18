@@ -97,5 +97,23 @@ namespace Steam.Application.Services.Orders.Implementations
 
             return _mapper.Map<OrderReturnDto>(order);
         }
+
+        public async Task<PagedResponse<OrderListItemForAdminDto>> GetAllOrdersForAdminAsync(int pageNumber, int pageSize)
+        {
+            var (items, totalCount) = await _unitOfWork.OrderRepository.GetAllPagedAsync(pageNumber, pageSize,
+                includes: new Func<IQueryable<Order>, IQueryable<Order>>[]
+                {
+            q => q.Include(o => o.User),
+            q => q.Include(o => o.Items)
+                });
+
+            return new PagedResponse<OrderListItemForAdminDto>
+            {
+                Data = _mapper.Map<List<OrderListItemForAdminDto>>(items),
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
     }
 }

@@ -35,6 +35,11 @@ namespace Steam.Application.Profiles
             CreateMap<OrderItem, OrderItemReturnDto>()
                 .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name));
 
+            // Admin üçün Order siyahısı
+            CreateMap<Order, OrderListItemForAdminDto>()
+                .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.Items.Count))
+                .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email)); // İstifadəçi məlumatından e-poçtu götürürük
+
 
             // Payment Mappings
             CreateMap<PaymentCreateDto, Payment>();

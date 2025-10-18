@@ -34,5 +34,11 @@ namespace Steam.Infrastructure.Repositories.Interfaces
             bool isIgnoredDeleteBehaviour = false);
 
         Task<T?> GetByIdAsync(int id, params Func<IQueryable<T>, IQueryable<T>>[]? includes);
+
+        Task<(IEnumerable<T> Items, int TotalCount)> GetAllPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<T, bool>>? predicate = null,
+            params Func<IQueryable<T>, IQueryable<T>>[]? includes);
     }
 }

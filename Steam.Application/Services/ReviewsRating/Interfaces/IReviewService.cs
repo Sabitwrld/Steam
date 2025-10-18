@@ -14,5 +14,6 @@ namespace Steam.Application.Services.ReviewsRating.Interfaces
         // New methods for community feedback
         Task MarkAsHelpfulAsync(int reviewId);
         Task MarkAsFunnyAsync(int reviewId);
+        Task<PagedResponse<ReviewListItemDto>> GetAllReviewsAsync(int pageNumber, int pageSize, bool? isApproved = null);
     }
 }

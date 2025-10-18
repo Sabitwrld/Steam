@@ -112,6 +112,27 @@ namespace Steam.Infrastructure.Repositories.Implementations
 
             return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
         }
+
+        public async Task<(IEnumerable<T> Items, int TotalCount)> GetAllPagedAsync(
+    int pageNumber,
+    int pageSize,
+    Expression<Func<T, bool>>? predicate = null,
+    params Func<IQueryable<T>, IQueryable<T>>[]? includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (includes != null)
+                foreach (var include in includes)
+                    query = include(query);
+
+            if (predicate != null)
+                query = query.Where(predicate);
+
+            var totalCount = await query.CountAsync();
+            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }
 
