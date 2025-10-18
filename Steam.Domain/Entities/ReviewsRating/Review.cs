@@ -19,6 +19,7 @@ namespace Steam.Domain.Entities.ReviewsRating
         /// This replaces the separate Rating/Score entity.
         /// </summary>
         public bool IsRecommended { get; set; }
+        public bool IsApproved { get; set; } = false; // Varsayılan olaraq təsdiqlənməmiş olsun
 
         // Community Feedback
         public int HelpfulCount { get; set; } = 0;

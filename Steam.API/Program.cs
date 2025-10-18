@@ -9,6 +9,8 @@ using Steam.Application.Profiles;
 using Steam.Application.Services;
 using Steam.Application.Services.Achievements.Implementations;
 using Steam.Application.Services.Achievements.Interfaces;
+using Steam.Application.Services.Admin.Implementations;
+using Steam.Application.Services.Admin.Interfaces;
 using Steam.Application.Services.Auth.Implementations;
 using Steam.Application.Services.Auth.Interfaces;
 using Steam.Application.Services.Catalog.Implementations;
@@ -96,6 +98,9 @@ namespace Steam.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            #endregion
+            #region Admin Services
+            builder.Services.AddScoped<IAdminService, AdminService>();
             #endregion
             #endregion
 
