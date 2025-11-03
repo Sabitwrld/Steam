@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Steam.Application.DTOs.Pagination;
@@ -6,6 +6,7 @@ using Steam.Application.DTOs.ReviewsRating.Review;
 using Steam.Application.Exceptions;
 using Steam.Application.Services.ReviewsRating.Interfaces;
 using Steam.Domain.Entities.ReviewsRating;
+using Steam.Infrastructure.Persistence;
 using Steam.Infrastructure.Repositories.Interfaces;
 using System.Linq.Expressions;
 
@@ -13,15 +14,17 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
 {
     public class ReviewService : IReviewService
     {
-        private readonly IUnitOfWork _unitOfWork; // Dəyişdirildi
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AppDbContext _dbContext;
 
-        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public ReviewService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, AppDbContext dbContext)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _dbContext = dbContext;
         }
 
         public async Task<ReviewReturnDto> CreateReviewAsync(ReviewCreateDto dto)
@@ -39,7 +42,6 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
             return await GetReviewByIdAsync(entity.Id);
         }
 
-        // UpdateReviewAsync metodu yenilənir
         public async Task<ReviewReturnDto> UpdateReviewAsync(int reviewId, string userId, ReviewUpdateDto dto)
         {
             var entity = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
@@ -49,13 +51,11 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
 
             var isAdmin = _httpContextAccessor.HttpContext.User.IsInRole("Admin");
 
-            // Əgər istifadəçi admin deyilsə və rəyin sahibi deyilsə, xəta ver
             if (!isAdmin && entity.UserId != userId)
                 throw new Exception("You are not authorized to edit this review.");
 
             _mapper.Map(dto, entity);
 
-            // Adminin rəyi təsdiqləməsi üçün əlavə məntiq (IsApproved dəyərini DTO-dan alaraq)
             if (isAdmin && dto.IsApproved.HasValue)
             {
                 entity.IsApproved = dto.IsApproved.Value;
@@ -97,7 +97,6 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
         public async Task<PagedResponse<ReviewListItemDto>> GetReviewsForApplicationAsync(
             int applicationId, int pageNumber, int pageSize)
         {
-            // Sorğu məntiqi Repository-yə daşındı
             var (items, totalCount) = await _unitOfWork.ReviewRepository
                 .GetReviewsByApplicationIdPagedAsync(applicationId, pageNumber, pageSize);
 
@@ -113,24 +112,38 @@ namespace Steam.Application.Services.ReviewsRating.Implementations
         }
         public async Task MarkAsHelpfulAsync(int reviewId)
         {
-            var review = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
-            if (review == null)
-                throw new NotFoundException(nameof(Review), reviewId);
+#if NET7_0_OR_GREATER
+            var affected = await _dbContext.Reviews
+                .Where(r => r.Id == reviewId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.HelpfulCount, r => r.HelpfulCount + 1));
+#else
+            var affected = await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE \"Reviews\"
+                SET \"HelpfulCount\" = \"HelpfulCount\" + 1
+                WHERE \"Id\" = {{reviewId}};
+            ");
+#endif
 
-            review.HelpfulCount++;
-            _unitOfWork.ReviewRepository.Update(review);
-            await _unitOfWork.CommitAsync();
+            if (affected == 0)
+                throw new NotFoundException(nameof(Review), reviewId);
         }
 
         public async Task MarkAsFunnyAsync(int reviewId)
         {
-            var review = await _unitOfWork.ReviewRepository.GetByIdAsync(reviewId);
-            if (review == null)
-                throw new NotFoundException(nameof(Review), reviewId);
+#if NET7_0_OR_GREATER
+            var affected = await _dbContext.Reviews
+                .Where(r => r.Id == reviewId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.FunnyCount, r => r.FunnyCount + 1));
+#else
+            var affected = await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE \"Reviews\"
+                SET \"FunnyCount\" = \"FunnyCount\" + 1
+                WHERE \"Id\" = {{reviewId}};
+            ");
+#endif
 
-            review.FunnyCount++;
-            _unitOfWork.ReviewRepository.Update(review);
-            await _unitOfWork.CommitAsync();
+            if (affected == 0)
+                throw new NotFoundException(nameof(Review), reviewId);
         }
 
         public async Task<PagedResponse<ReviewListItemDto>> GetAllReviewsAsync(int pageNumber, int pageSize, bool? isApproved = null)

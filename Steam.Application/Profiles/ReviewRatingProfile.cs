@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Steam.Application.DTOs.ReviewsRating.Review;
 using Steam.Domain.Entities.ReviewsRating;
 
@@ -13,16 +13,14 @@ namespace Steam.Application.Profiles
             CreateMap<ReviewUpdateDto, Review>();
 
             CreateMap<Review, ReviewReturnDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.UserName : string.Empty));
 
             CreateMap<Review, ReviewListItemDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
-
-                // --- ADD THIS LOGIC HERE ---
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.UserName : string.Empty))
                 .ForMember(dest => dest.ContentShort, opt => opt.MapFrom(src =>
-                    src.Content.Length > 200
+                    !string.IsNullOrEmpty(src.Content) && src.Content.Length > 200
                         ? src.Content.Substring(0, 200) + "..."
-                        : src.Content));
+                        : (src.Content ?? string.Empty)));
         }
     }
 }

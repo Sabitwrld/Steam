@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Steam.Application.DTOs.Pagination;
 using Steam.Application.DTOs.ReviewsRating.Review;
@@ -23,11 +23,6 @@ namespace Steam.API.Controllers.ReviewsRating
             return Ok(result);
         }
 
-        // ... digər endpointlər ...
-
-        /// <summary>
-        /// Gets all reviews for the admin panel with pagination. (Admin only)
-        /// </summary>
         [HttpGet("paged")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(PagedResponse<ReviewListItemDto>), 200)]
@@ -66,7 +61,6 @@ namespace Steam.API.Controllers.ReviewsRating
         public async Task<ActionResult<ReviewReturnDto>> UpdateMyReview(int id, [FromBody] ReviewUpdateDto dto)
         {
             var userId = GetCurrentUserId();
-            // Admin rolundakı istifadəçi üçün userId boş ola bilər, bu halda servis yoxlamanı özü edəcək
             var result = await _service.UpdateReviewAsync(id, userId, dto);
             return Ok(result);
         }
