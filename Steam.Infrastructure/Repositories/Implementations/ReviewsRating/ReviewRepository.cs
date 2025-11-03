@@ -1,7 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Steam.Domain.Entities.ReviewsRating;
-using Steam.Infrastructure.Persistence;
-using Steam.Infrastructure.Repositories.Interfaces.ReviewsRating;
+using System.Linq.Expressions;
 
 namespace Steam.Infrastructure.Repositories.Implementations.ReviewsRating
 {
@@ -16,18 +15,37 @@ namespace Steam.Infrastructure.Repositories.Implementations.ReviewsRating
         {
             var query = _dbSet
                 .Where(r => r.ApplicationId == applicationId)
-                .Include(r => r.User) // User məlumatlarını da gətirmək üçün
+                .Include(r => r.User)
                 .AsNoTracking();
 
             var totalCount = await query.CountAsync();
 
             var items = await query
-                .OrderByDescending(r => r.HelpfulCount) // Servisdəki sıralama məntiqi bura daşındı
+                .OrderByDescending(r => r.HelpfulCount)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
             return (items, totalCount);
+        }
+
+        public async Task<(IEnumerable<T>, int)> GetReviewsForApplicationProjectedAsync<T>(
+            int applicationId, int pageNumber, int pageSize, Expression<Func<Review, T>> selector)
+        {
+            var query = _dbSet
+                .Where(r => r.ApplicationId == applicationId)
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+
+            var projected = await query
+                .OrderByDescending(r => r.HelpfulCount)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(selector)
+                .ToListAsync();
+
+            return (projected, totalCount);
         }
     }
 }
